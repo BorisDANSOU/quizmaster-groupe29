@@ -2,7 +2,7 @@
   "quizId": "q001",
   "titre": "Bien-etre au quotidien",
   "categorie": "Sante_Bien_Etre",
-  "difficulte": "facile",
+  "difficulte": "moyen",
   "questions": [
     {
       "id": "q001-01",
@@ -66,6 +66,19 @@
       ],
       "bonneReponseIndex": 1,
       "points": 10
+    },
+    {
+      "id": "q001-06",
+      "enonce": "Quel est le meilleur moment pour faire du sport selon les recommandations generales ?",
+      "type": "qcm",
+      "options": [
+        "Juste apres un gros repas",
+        "A n'importe quel moment, tant que c'est regulier",
+        "Uniquement le matin a jeun",
+        "Jamais le soir"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 5
     }
   ]
 }
