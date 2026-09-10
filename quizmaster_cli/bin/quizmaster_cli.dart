@@ -25,6 +25,9 @@ void main() {
         modifierQuiz(jsonService);
         break;
       case '4':
+        supprimerQuiz();
+        break;
+      case '5':
         continuer = false;
         print('A bientot !');
         break;
@@ -40,7 +43,8 @@ void afficherMenu() {
   print('1. Creer un nouveau quiz');
   print('2. Lister les quiz existants');
   print('3. Modifier un quiz existant');
-  print('4. Quitter');
+  print('4. Supprimer un quiz');
+  print('5. Quitter');
   stdout.write('Ton choix : ');
 }
 
@@ -48,17 +52,36 @@ void afficherMenu() {
 void creerQuiz(JsonService jsonService) {
   print('\n--- Creation d\'un nouveau quiz ---');
 
-  stdout.write('ID du quiz (ex: q001) : ');
-  final quizId = stdin.readLineSync() ?? '';
+  String quizId = '';
+  while (quizId.isEmpty || File('data/$quizId.json').existsSync()) {
+    stdout.write('ID du quiz (ex: q001) : ');
+    quizId = stdin.readLineSync() ?? '';
+
+    if (quizId.isEmpty) {
+      print('L\'ID ne peut pas etre vide.');
+    } else if (File('data/$quizId.json').existsSync()) {
+      print('Un quiz avec cet ID existe deja, choisis-en un autre.');
+      quizId = ''; // force une nouvelle saisie
+    }
+  }
 
   stdout.write('Titre du quiz : ');
   final titre = stdin.readLineSync() ?? '';
 
-  stdout.write('Categorie (ex: Education / Santé) : ');
+  stdout.write('Categorie (ex: Education) : ');
   final categorie = stdin.readLineSync() ?? '';
 
-  stdout.write('Difficulte (facile/moyen/difficile) : ');
-  final difficulte = stdin.readLineSync() ?? 'facile';
+  // Difficulte : uniquement une des 3 valeurs autorisees
+  const difficultesValides = ['facile', 'moyen', 'difficile'];
+  String difficulte = '';
+  while (!difficultesValides.contains(difficulte)) {
+    stdout.write('Difficulte (facile/moyen/difficile) : ');
+    difficulte = (stdin.readLineSync() ?? '').toLowerCase();
+
+    if (!difficultesValides.contains(difficulte)) {
+      print('Valeur invalide, choisis parmi : facile, moyen, difficile.');
+    }
+  }
 
   final questions = <Question>[];
   bool ajouterAutreQuestion = true;
@@ -159,10 +182,12 @@ void modifierQuiz(JsonService jsonService) {
 
   // On garde l'ancienne valeur si l'utilisateur n'a rien tape
   final titre = nouveauTitre.isNotEmpty ? nouveauTitre : quizActuel.titre;
-  final categorie =
-      nouvelleCategorie.isNotEmpty ? nouvelleCategorie : quizActuel.categorie;
-  final difficulte =
-      nouvelleDifficulte.isNotEmpty ? nouvelleDifficulte : quizActuel.difficulte;
+  final categorie = nouvelleCategorie.isNotEmpty
+      ? nouvelleCategorie
+      : quizActuel.categorie;
+  final difficulte = nouvelleDifficulte.isNotEmpty
+      ? nouvelleDifficulte
+      : quizActuel.difficulte;
 
   final questions = List<Question>.from(quizActuel.questions);
 
@@ -216,5 +241,28 @@ void listerQuiz() {
   print('\n--- Quiz existants ---');
   for (final chemin in chemins) {
     print('- $chemin');
+  }
+}
+
+/// Supprime le fichier JSON d'un quiz, apres confirmation de l'utilisateur.
+void supprimerQuiz() {
+  stdout.write('\nID du quiz a supprimer (ex: q001) : ');
+  final quizId = stdin.readLineSync() ?? '';
+  final cheminFichier = 'data/$quizId.json';
+  final fichier = File(cheminFichier);
+
+  if (!fichier.existsSync()) {
+    print('Aucun quiz trouve avec cet ID ($cheminFichier).');
+    return;
+  }
+
+  stdout.write('Es-tu sur de vouloir supprimer "$quizId" ? (o/n) : ');
+  final confirmation = stdin.readLineSync()?.toLowerCase();
+
+  if (confirmation == 'o') {
+    fichier.deleteSync();
+    print('Quiz supprime avec succes.');
+  } else {
+    print('Suppression annulee.');
   }
 }
