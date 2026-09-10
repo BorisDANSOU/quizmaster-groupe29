@@ -188,27 +188,33 @@ void modifierQuiz(JsonService jsonService) {
   print('\nQuiz modifie et sauvegarde avec succes.');
 }
 
-void listerQuiz() {
-  final dossier = Directory('data');
+/// Retourne la liste des chemins de fichiers de quiz presents dans un dossier.
+List<String> listerCheminsQuiz(String cheminDossier) {
+  final dossier = Directory(cheminDossier);
 
   if (!dossier.existsSync()) {
-    print('\nAucun quiz trouve (dossier data/ inexistant).');
-    return;
+    return [];
   }
 
-  final fichiers = dossier
+  return dossier
       .listSync()
       .whereType<File>()
       .where((f) => f.path.endsWith('.json'))
+      .map((f) => f.path)
       .toList();
+}
 
-  if (fichiers.isEmpty) {
+/// Affiche a l'ecran la liste des quiz existants dans data/.
+void listerQuiz() {
+  final chemins = listerCheminsQuiz('data');
+
+  if (chemins.isEmpty) {
     print('\nAucun quiz trouve.');
     return;
   }
 
   print('\n--- Quiz existants ---');
-  for (final fichier in fichiers) {
-    print('- ${fichier.path}');
+  for (final chemin in chemins) {
+    print('- $chemin');
   }
 }
