@@ -55,7 +55,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   // Text of welcoming
                   Text(
-                    "Register",
+                    "S'inscrire",
                     style: TextStyle(fontSize: 28, fontWeight: .bold),
                   ),
                   Text(
@@ -148,7 +148,23 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
               ),
               onPressed: () {},
-              child: Text("Registrer avec Google"),
+              child: Row(
+                crossAxisAlignment: .center,
+                mainAxisAlignment: .center,
+                children: [
+                  ClipRRect(
+                    borderRadius: .circular(12),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      "assets/logo/googleIcons.png",
+                      width: 40,
+                      height: 40,
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  Text("Continuer avec Google"),
+                ],
+              ),
             ),
             InkWell(
               onTap: () {

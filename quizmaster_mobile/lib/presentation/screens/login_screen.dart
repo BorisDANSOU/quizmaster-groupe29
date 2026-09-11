@@ -161,7 +161,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               onPressed: () {},
-              child: Text("Continuer avec Google"),
+              child: Row(
+                crossAxisAlignment: .center,
+                mainAxisAlignment: .center,
+                children: [
+                  ClipRRect(
+                    borderRadius: .circular(12),
+                    clipBehavior: Clip.antiAlias,
+                    child: Image.asset(
+                      "assets/logo/googleIcons.png",
+                      width: 40,
+                      height: 40,
+                    ),
+                  ),
+                  SizedBox(width: 6),
+                  Text("Continuer avec Google"),
+                ],
+              ),
             ),
             InkWell(
               onTap: () {

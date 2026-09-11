@@ -10,7 +10,7 @@ import 'package:quizmaster_mobile/presentation/screens/signup_screen.dart';
 import 'package:quizmaster_mobile/presentation/screens/splash_screen.dart';
 
 final GoRouter routes = GoRouter(
-  initialLocation: "/login",
+  initialLocation: "/signup",
   // redirect: (context, state) {
   //   if (!Setting.isAuthenticated) return "/login";
   //   if (Setting.isLoading) return "/splash";
