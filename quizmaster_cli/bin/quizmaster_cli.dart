@@ -109,6 +109,7 @@ void creerQuiz(JsonService jsonService) {
 }
 
 /// Guide pour creer une seule question QCM.
+
 Question creerQuestion(int numero, String quizId) {
   print('\n-- Question $numero --');
 
@@ -116,30 +117,55 @@ Question creerQuestion(int numero, String quizId) {
   final enonce = stdin.readLineSync() ?? '';
 
   final options = <String>[];
-  print('Entre les options (laisse vide pour arreter, minimum 2) :');
+  const maxOptions = 5;
+  const minOptions = 2;
 
-  int numeroOption = 1;
-  while (true) {
-    stdout.write('Option $numeroOption : ');
+  print('Ajoute les options (minimum $minOptions, maximum $maxOptions) :');
+
+  while (options.length < maxOptions) {
+    stdout.write('Option ${options.length + 1} : ');
     final option = stdin.readLineSync() ?? '';
 
     if (option.isEmpty) {
-      if (options.length < 2) {
-        print('Il faut au moins 2 options, continue.');
+      print('Une option ne peut pas etre vide, reessaie.');
+      continue;
+    }
+
+    options.add(option);
+
+    // Si le maximum est deja atteint, pas besoin de demander : on sort direct
+    if (options.length == maxOptions) {
+      print('Nombre maximum d\'options atteint ($maxOptions).');
+      break;
+    }
+
+    // Demande systematique apres CHAQUE option ajoutee
+    stdout.write('Ajouter une autre option ? (o/n) : ');
+    final continuer = stdin.readLineSync()?.toLowerCase();
+
+    if (continuer != 'o') {
+      // L'utilisateur veut s'arreter, mais le minimum n'est pas encore atteint
+      if (options.length < minOptions) {
+        print('Il faut au moins $minOptions options, continue.');
         continue;
       }
       break;
     }
-
-    options.add(option);
-    numeroOption++;
   }
 
-  int bonneReponseIndex = -1;
-  while (bonneReponseIndex < 0 || bonneReponseIndex >= options.length) {
-    stdout.write('Index de la bonne reponse (0 a ${options.length - 1}) : ');
-    bonneReponseIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  // Saisie de la bonne reponse en base 1 (plus naturel pour l'utilisateur),
+  // convertie en index interne base 0 pour rester coherent avec le modele.
+  int numeroBonneReponse = -1;
+  while (numeroBonneReponse < 1 || numeroBonneReponse > options.length) {
+    stdout.write('Numero de la bonne reponse (1 a ${options.length}) : ');
+    numeroBonneReponse = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+
+    if (numeroBonneReponse < 1 || numeroBonneReponse > options.length) {
+      print('Numero invalide, choisis entre 1 et ${options.length}.');
+    }
   }
+  final bonneReponseIndex =
+      numeroBonneReponse - 1; // conversion base 1 -> base 0
 
   stdout.write('Points pour cette question : ');
   final points = int.tryParse(stdin.readLineSync() ?? '') ?? 10;
