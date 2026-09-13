@@ -1,5 +1,6 @@
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
+import '../../domain/entities/auth_user.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({AuthRemoteDataSource? dataSource})
@@ -29,6 +30,11 @@ class AuthRepositoryImpl implements AuthRepository {
       password: password,
       displayName: displayName,
     );
+  }
+
+  @override
+  Future<AuthUser> signInWithGoogle() {
+    return _dataSource.signInWithGoogle();
   }
 
   @override

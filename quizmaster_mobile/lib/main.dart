@@ -1,7 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:quizmaster_mobile/domain/entities/auth_user.dart';
 
-import 'firebase_options.dart';
+/// import 'firebase_options.dart';
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/leaderboard_remote_datasource.dart';
 import 'data/datasources/profil_remote_datasource.dart';
@@ -10,14 +11,14 @@ import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/leaderboard_repository_impl.dart';
 import 'data/repositories/profil_repository_impl.dart';
 import 'data/repositories/quiz_repository_impl.dart';
-import 'domain/repositories/auth_repository.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialisation de Firebase avec les options du projet
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    ///options: DefaultFirebaseOptions.currentPlatform,
   );
 
   // Initialisation des Repositories (Injection simple pour l'exemple)

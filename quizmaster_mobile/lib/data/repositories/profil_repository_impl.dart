@@ -1,5 +1,4 @@
 import '../../domain/entities/profil_utilisateur.dart';
-import '../../domain/entities/resultat_quiz.dart';
 import '../../domain/repositories/profil_repository.dart';
 import '../datasources/profil_remote_datasource.dart';
 
@@ -20,12 +19,12 @@ class ProfilRepositoryImpl implements ProfilRepository {
   }
 
   @override
-  Future<List<ResultatQuiz>> getHistory(String uid) {
+  Future<List<HistoriqueQuiz>> getHistory(String uid) {
     return _dataSource.getHistory(uid);
   }
 
   @override
-  Future<void> saveHistoryEntry(ResultatQuiz result) {
-    return _dataSource.saveHistoryEntry(result);
+  Future<void> saveHistoryEntry(String uid, HistoriqueQuiz entry) {
+    return _dataSource.saveHistoryEntry(uid, entry);
   }
 }

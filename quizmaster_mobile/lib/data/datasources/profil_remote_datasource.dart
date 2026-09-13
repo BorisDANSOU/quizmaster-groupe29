@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/profil_utilisateur.dart';
-import '../../domain/entities/resultat_quiz.dart';
 
 class ProfilRemoteDataSource {
   ProfilRemoteDataSource({FirebaseFirestore? firestore})
@@ -29,24 +28,26 @@ class ProfilRemoteDataSource {
         .set(profile.copyWith(uid: uid).toJson(), SetOptions(merge: true));
   }
 
-  Future<List<ResultatQuiz>> getHistory(String uid) async {
+  /// L'historique est stocke dans une sous-collection dediee a chaque
+  /// utilisateur (users/{uid}/historique), separee du classement global.
+  Future<List<HistoriqueQuiz>> getHistory(String uid) async {
     final snapshot = await _firestore
-        .collection('results')
-        .where('joueur', isEqualTo: uid)
+        .collection('users')
+        .doc(uid)
+        .collection('historique')
         .orderBy('date', descending: true)
         .get();
 
     return snapshot.docs
-        .map(
-          (doc) => ResultatQuiz.fromJson({
-            ...doc.data(),
-            'quizId': doc.data()['quizId'] ?? '',
-          }),
-        )
+        .map((doc) => HistoriqueQuiz.fromJson(doc.data()))
         .toList();
   }
 
-  Future<void> saveHistoryEntry(ResultatQuiz result) async {
-    await _firestore.collection('results').add(result.toJson());
+  Future<void> saveHistoryEntry(String uid, HistoriqueQuiz entry) async {
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('historique')
+        .add(entry.toJson());
   }
 }

@@ -1,4 +1,5 @@
 import '../repositories/auth_repository.dart';
+import '../entities/auth_user.dart';
 
 class ConnexionUseCase {
   const ConnexionUseCase(this._authRepository);
