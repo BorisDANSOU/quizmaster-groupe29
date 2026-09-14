@@ -5,6 +5,6 @@ class LeaderboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("Leaderboard screen")));
+    return Scaffold(body: Center(child: Text("Leaderboard screen good")));
   }
 }

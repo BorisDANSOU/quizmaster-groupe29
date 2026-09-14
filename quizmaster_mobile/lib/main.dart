@@ -35,6 +35,14 @@ class MyApp extends StatelessWidget {
             side: BorderSide(width: 1, color: blueColor),
           ),
         ),
+        textTheme: TextTheme(
+          titleLarge: TextStyle(fontWeight: .bold, fontSize: 28),
+          headlineSmall: TextStyle(fontWeight: .bold, fontSize: 20),
+          bodyLarge: TextStyle(
+            fontWeight: .normal,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
+          ),
+        ),
       ),
 
       darkTheme: ThemeData.dark(useMaterial3: true),
