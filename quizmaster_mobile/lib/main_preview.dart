@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/signup_screen.dart';
 
 void main() {
   runApp(const ApercuApp());
@@ -12,18 +12,12 @@ class ApercuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(
-        onConnexion: (email, motDePasse) async {
-          debugPrint('Connexion : $email / $motDePasse');
+      home: SignupScreen(
+        onInscription: (nom, email, motDePasse) async {
+          debugPrint('Inscription : $nom / $email / $motDePasse');
         },
-        onConnexionGoogle: () async {
-          debugPrint('Connexion Google');
-        },
-        onNaviguerVersInscription: () {
-          debugPrint('Naviguer vers inscription');
-        },
-        onMotDePasseOublie: () {
-          debugPrint('Mot de passe oublie');
+        onNaviguerVersConnexion: () {
+          debugPrint('Naviguer vers connexion');
         },
       ),
     );
