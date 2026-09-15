@@ -12,7 +12,6 @@ import 'data/repositories/leaderboard_repository_impl.dart';
 import 'data/repositories/profil_repository_impl.dart';
 import 'data/repositories/quiz_repository_impl.dart';
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -99,10 +98,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          return HomePage(
-            user: snapshot.data!,
-            authRepository: authRepository,
-          );
+          return HomePage(user: snapshot.data!, authRepository: authRepository);
         }
 
         return const LoginPage();
@@ -131,11 +127,7 @@ class LoginPage extends StatelessWidget {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({
-    super.key,
-    required this.user,
-    required this.authRepository,
-  });
+  const HomePage({super.key, required this.user, required this.authRepository});
 
   final AuthUser user;
   final AuthRepositoryImpl authRepository;
