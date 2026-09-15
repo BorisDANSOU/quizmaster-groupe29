@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/explore_screen.dart';
 import 'presentation/theme/app_colors.dart';
 
 void main() {
@@ -13,49 +13,37 @@ class ApercuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(
-        nomUtilisateur: 'Alex',
-        quizEnCours: const QuizEnCoursData(
-          categorie: 'Santé & Bien-être',
-          progression: '7/10',
-          difficulte: 'Facile',
-          couleur: AppColors.categorieSante,
-        ),
+      home: ExploreScreen(
         categories: const [
-          CategorieData(
+          CategorieExploreData(
             nom: 'Education',
-            nombreQuiz: 12,
+            resume: '12 quiz • 3 niveaux',
             icone: Icons.school,
             couleur: AppColors.categorieEducation,
           ),
-          CategorieData(
-            nom: 'Santé',
-            nombreQuiz: 10,
+          CategorieExploreData(
+            nom: 'Santé & Bien-être',
+            resume: '10 quiz • 3 niveaux',
             icone: Icons.favorite,
             couleur: AppColors.categorieSante,
           ),
-          CategorieData(
+          CategorieExploreData(
             nom: 'Mode de vie',
-            nombreQuiz: 8,
+            resume: '8 quiz • 3 niveaux',
             icone: Icons.auto_awesome,
             couleur: AppColors.categorieModeDeVie,
           ),
-        ],
-        quizRecents: [
-          QuizRecentData(
-            categorie: 'Santé & Bien-être',
-            titre: 'Alimentation équilibrée',
-            sousTexte: 'Score : 80% • 5 min',
-            couleur: AppColors.categorieSante,
-            icone: Icons.favorite,
+          CategorieExploreData(
+            nom: 'Développement personnel',
+            resume: '6 quiz • 3 niveaux',
+            icone: Icons.person,
+            couleur: AppColors.categorieDeveloppement,
           ),
         ],
-        onTapQuizEnCours: () => debugPrint('Continuer quiz'),
         onTapCategorie: (c) => debugPrint('Categorie: ${c.nom}'),
-        onTapQuizRecent: (q) => debugPrint('Quiz: ${q.titre}'),
-        onTapVoirToutesCategories: () => debugPrint('Voir toutes categories'),
-        onTapVoirTousQuizRecents: () => debugPrint('Voir tous quiz recents'),
+        onRetour: () => debugPrint('Retour'),
         onChangerOnglet: (i) => debugPrint('Onglet: $i'),
+        onRecherche: (texte) => debugPrint('Recherche: $texte'),
       ),
     );
   }
