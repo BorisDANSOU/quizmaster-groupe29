@@ -41,6 +41,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() => _dataSource.signOut();
 
   @override
+  Future<void> updateDisplayName(String displayName) {
+    return _dataSource.updateDisplayName(displayName);
+  }
+
+  @override
   Stream<AuthUser?> authStateChanges() => _dataSource.authStateChanges();
 
   @override

@@ -24,6 +24,9 @@ class MainNavigationScreen extends StatefulWidget {
     required this.chargerClassement,
     required this.enregistrerResultat,
     required this.onDeconnexion,
+    required this.nomUtilisateur,
+    required this.emailUtilisateur,
+    required this.onModifierNom,
   });
 
   final String uid;
@@ -33,6 +36,9 @@ class MainNavigationScreen extends StatefulWidget {
   final ChargerClassementUseCase chargerClassement;
   final EnregistrerResultatUseCase enregistrerResultat;
   final VoidCallback onDeconnexion;
+  final String nomUtilisateur;
+  final String emailUtilisateur;
+  final Future<void> Function(String nom) onModifierNom;
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -74,7 +80,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     if (!mounted) return;
     setState(() {
       _quizzes = resultats[0] as List<Quiz>;
-      _profil = resultats[1] as ProfilUtilisateur?;
+      final profilCharge = resultats[1] as ProfilUtilisateur?;
+      _profil = profilCharge == null
+          ? ProfilUtilisateur(
+              uid: widget.uid,
+              nom: widget.nomUtilisateur,
+              email: widget.emailUtilisateur,
+              quizJoues: 0,
+              meilleureSerie: 0,
+              tauxReussite: 0,
+              historique: const [],
+            )
+          : profilCharge.copyWith(
+              nom: profilCharge.nom.isEmpty
+                  ? widget.nomUtilisateur
+                  : profilCharge.nom,
+              email: profilCharge.email.isEmpty
+                  ? widget.emailUtilisateur
+                  : profilCharge.email,
+            );
       _classement = resultats[2] as List<ProfilUtilisateur>;
       _chargement = false;
     });
@@ -92,6 +116,44 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _changerOnglet(int index) => setState(() => _ongletActuel = index);
 
+  Future<void> _editerProfil() async {
+    final controller = TextEditingController(text: _profil?.nom);
+    final nom = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Modifier le nom'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(labelText: 'Nom'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (!mounted || nom == null || nom.isEmpty) return;
+    try {
+      await widget.onModifierNom(nom);
+      if (!mounted) return;
+      setState(() => _profil = _profil?.copyWith(nom: nom));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de modifier le nom.')),
+      );
+    }
+  }
+
   void _demarrerQuiz(Quiz quiz) {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -99,7 +161,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           quiz: quiz,
           validerReponse: widget.validerReponse,
           onTerminer: () => Navigator.of(context).pop(),
-          onQuizTermine: (score) async {
+          onQuizTermine: (score, totalQuestions) async {
             await widget.enregistrerResultat.call(
               ResultatQuiz(
                 quizId: quiz.quizId,
@@ -108,6 +170,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 date: DateTime.now(),
               ),
               titreQuiz: quiz.titre,
+              totalQuestions: totalQuestions,
             );
             await _rafraichirProfilEtClassement();
           },
@@ -238,7 +301,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 ),
               )
               .toList(),
-          onEditer: () {},
+          onEditer: _editerProfil,
           onVoirToutHistorique: () {},
           onTapHistorique: (item) {},
           onParametres: () {},

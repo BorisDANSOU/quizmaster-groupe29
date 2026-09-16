@@ -63,7 +63,7 @@ class AuthRemoteDataSource {
     await _assurerGoogleSignInInitialise();
 
     final googleUser = await _googleSignIn.authenticate();
-    final googleAuth = googleUser.authentication; 
+    final googleAuth = googleUser.authentication;
 
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
@@ -72,7 +72,9 @@ class AuthRemoteDataSource {
     final userCredential = await _firebaseAuth.signInWithCredential(credential);
     final user = userCredential.user;
     if (user == null) {
-      throw StateError('Erreur de connexion Google : aucun utilisateur retourné.');
+      throw StateError(
+        'Erreur de connexion Google : aucun utilisateur retourné.',
+      );
     }
     return _toAuthUser(user)!;
   }
@@ -80,6 +82,15 @@ class AuthRemoteDataSource {
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _firebaseAuth.signOut();
+  }
+
+  Future<void> updateDisplayName(String displayName) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw StateError('Aucun utilisateur connecte.');
+    }
+    await user.updateDisplayName(displayName.trim());
+    await user.reload();
   }
 
   Stream<AuthUser?> authStateChanges() {

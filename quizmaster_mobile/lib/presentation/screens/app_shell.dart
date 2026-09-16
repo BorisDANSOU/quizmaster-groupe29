@@ -89,12 +89,15 @@ class _AppShellState extends State<AppShell> {
       case _Etape.principal:
         return MainNavigationScreen(
           uid: 'uid_apercu_local', // faux uid, sans vrai compte Firebase
+          nomUtilisateur: 'Utilisateur',
+          emailUtilisateur: 'utilisateur@example.com',
           chargerListeQuiz: _chargerListeQuiz,
           validerReponse: _validerReponse,
           chargerProfil: _chargerProfil,
           chargerClassement: _chargerClassement,
           enregistrerResultat: _enregistrerResultat,
           onDeconnexion: () => setState(() => _etape = _Etape.connexion),
+          onModifierNom: (_) async {},
         );
     }
   }

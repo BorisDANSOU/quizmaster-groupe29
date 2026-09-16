@@ -4,12 +4,14 @@ class HistoriqueQuiz {
     required this.titre,
     required this.score,
     required this.date,
+    this.totalQuestions = 0,
   });
 
   final String quizId;
   final String titre;
   final int score;
   final DateTime date;
+  final int totalQuestions;
 
   factory HistoriqueQuiz.fromJson(Map<String, dynamic> json) {
     return HistoriqueQuiz(
@@ -18,6 +20,7 @@ class HistoriqueQuiz {
       score: (json['score'] as num? ?? 0).toInt(),
       date:
           DateTime.tryParse((json['date'] ?? '').toString()) ?? DateTime.now(),
+      totalQuestions: (json['totalQuestions'] as num? ?? 0).toInt(),
     );
   }
 
@@ -27,6 +30,7 @@ class HistoriqueQuiz {
       'titre': titre,
       'score': score,
       'date': date.toIso8601String(),
+      'totalQuestions': totalQuestions,
     };
   }
 }

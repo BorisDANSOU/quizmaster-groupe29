@@ -16,7 +16,7 @@ class QuizFlowScreen extends StatefulWidget {
   final Quiz quiz;
   final ValiderReponseUseCase validerReponse;
   final VoidCallback onTerminer;
-  final ValueChanged<int> onQuizTermine;
+  final void Function(int bonnesReponses, int totalQuestions) onQuizTermine;
 
   @override
   State<QuizFlowScreen> createState() => _QuizFlowScreenState();
@@ -39,7 +39,7 @@ class _QuizFlowScreenState extends State<QuizFlowScreen> {
       setState(() => _indexQuestion++);
     } else {
       setState(() => _quizTermine = true);
-      widget.onQuizTermine(_bonnesReponses);
+      widget.onQuizTermine(_bonnesReponses, widget.quiz.questions.length);
     }
   }
 

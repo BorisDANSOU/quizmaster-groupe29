@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quizmaster_mobile/domain/usecases/charger_profil_usecase.dart';
 
 import 'firebase_options.dart';
@@ -45,13 +44,11 @@ Future<void> main() async {
   );
 
   runApp(
-    ProviderScope(
-      child: QuizMasterApp(
-        authRepository: authRepository,
-        quizRepository: quizRepository,
-        profilRepository: profilRepository,
-        leaderboardRepository: leaderboardRepository,
-      ),
+    QuizMasterApp(
+      authRepository: authRepository,
+      quizRepository: quizRepository,
+      profilRepository: profilRepository,
+      leaderboardRepository: leaderboardRepository,
     ),
   );
 }
@@ -146,6 +143,8 @@ class _AuthGateState extends State<AuthGate> {
         if (snapshot.hasData) {
           return MainNavigationScreen(
             uid: snapshot.data!.uid,
+            nomUtilisateur: snapshot.data!.displayName ?? '',
+            emailUtilisateur: snapshot.data!.email ?? '',
             chargerListeQuiz: ChargerListeQuizUseCase(widget.quizRepository),
             validerReponse: const ValiderReponseUseCase(),
             chargerProfil: ChargerProfilUsecase(widget.profilRepository),
@@ -157,6 +156,18 @@ class _AuthGateState extends State<AuthGate> {
               widget.profilRepository,
             ),
             onDeconnexion: () => widget.authRepository.signOut(),
+            onModifierNom: (nom) async {
+              await widget.authRepository.updateDisplayName(nom);
+              final profil = await widget.profilRepository.getProfile(
+                snapshot.data!.uid,
+              );
+              if (profil != null) {
+                await widget.profilRepository.createOrUpdateProfile(
+                  snapshot.data!.uid,
+                  profil.copyWith(nom: nom),
+                );
+              }
+            },
           );
         }
 

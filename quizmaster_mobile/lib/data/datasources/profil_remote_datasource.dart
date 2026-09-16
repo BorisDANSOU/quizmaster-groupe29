@@ -10,12 +10,47 @@ class ProfilRemoteDataSource {
 
   Future<ProfilUtilisateur?> getProfile(String uid) async {
     final snapshot = await _firestore.collection('users').doc(uid).get();
+    final historique = await getHistory(uid);
     if (!snapshot.exists || snapshot.data() == null) {
-      return null;
+      if (historique.isEmpty) return null;
+      return ProfilUtilisateur(
+        uid: uid,
+        nom: '',
+        email: '',
+        quizJoues: historique.length,
+        meilleureSerie: 0,
+        tauxReussite: _calculerTauxReussite(historique),
+        historique: historique,
+      );
     }
 
     final data = snapshot.data()!;
-    return ProfilUtilisateur.fromJson({...data, 'uid': snapshot.id});
+    final statistiques = historique.any((entry) => entry.totalQuestions > 0)
+        ? {
+            'quizJoues': historique.length,
+            'tauxReussite': _calculerTauxReussite(historique),
+          }
+        : const <String, int>{};
+
+    return ProfilUtilisateur.fromJson({
+      ...data,
+      ...statistiques,
+      'historique': historique.map((entry) => entry.toJson()).toList(),
+      'uid': snapshot.id,
+    });
+  }
+
+  int _calculerTauxReussite(List<HistoriqueQuiz> historique) {
+    final totalQuestions = historique.fold<int>(
+      0,
+      (total, entry) => total + entry.totalQuestions,
+    );
+    if (totalQuestions == 0) return 0;
+    final bonnesReponses = historique.fold<int>(
+      0,
+      (total, entry) => total + entry.score,
+    );
+    return ((bonnesReponses / totalQuestions) * 100).round();
   }
 
   Future<void> createOrUpdateProfile(

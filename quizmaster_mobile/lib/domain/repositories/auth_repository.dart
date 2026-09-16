@@ -12,10 +12,12 @@ abstract class AuthRepository {
     String? displayName,
   });
 
- /// Connexion via Google Sign-In .
+  /// Connexion via Google Sign-In .
   Future<AuthUser> signInWithGoogle();
 
   Future<void> signOut();
+
+  Future<void> updateDisplayName(String displayName);
 
   Stream<AuthUser?> authStateChanges();
 

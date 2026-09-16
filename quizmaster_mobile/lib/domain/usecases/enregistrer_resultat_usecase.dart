@@ -10,12 +10,17 @@ import '../entities/profil_utilisateur.dart';
 class EnregistrerResultatUseCase {
   const EnregistrerResultatUseCase(
     this._leaderboardRepository,
-    this._profilRepository,);
+    this._profilRepository,
+  );
 
   final LeaderboardRepository _leaderboardRepository;
   final ProfilRepository _profilRepository;
 
-  Future<void> call(ResultatQuiz resultat, {required String titreQuiz}) async {
+  Future<void> call(
+    ResultatQuiz resultat, {
+    required String titreQuiz,
+    required int totalQuestions,
+  }) async {
     await _leaderboardRepository.saveResult(resultat);
 
     // await _profilRepository.saveHistoryEntry(resultat);
@@ -26,8 +31,8 @@ class EnregistrerResultatUseCase {
         titre: titreQuiz,
         score: resultat.score,
         date: resultat.date,
+        totalQuestions: totalQuestions,
       ),
     );
-
   }
 }

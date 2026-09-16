@@ -28,17 +28,20 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nomController = TextEditingController();
   final _emailController = TextEditingController();
   final _motDePasseController = TextEditingController();
+  final _confirmationMotDePasseController = TextEditingController();
   bool _motDePasseVisible = false;
 
   String? _erreurNom;
   String? _erreurEmail;
   String? _erreurMotDePasse;
+  String? _erreurConfirmationMotDePasse;
 
   @override
   void dispose() {
     _nomController.dispose();
     _emailController.dispose();
     _motDePasseController.dispose();
+    _confirmationMotDePasseController.dispose();
     super.dispose();
   }
 
@@ -53,10 +56,15 @@ class _SignupScreenState extends State<SignupScreen> {
       _erreurMotDePasse = _motDePasseController.text.length < 6
           ? 'Minimum 6 caracteres'
           : null;
+      _erreurConfirmationMotDePasse =
+          _confirmationMotDePasseController.text != _motDePasseController.text
+          ? 'Les mots de passe ne correspondent pas'
+          : null;
     });
     return _erreurNom == null &&
         _erreurEmail == null &&
-        _erreurMotDePasse == null;
+        _erreurMotDePasse == null &&
+        _erreurConfirmationMotDePasse == null;
   }
 
   void _soumettre() {
@@ -124,6 +132,16 @@ class _SignupScreenState extends State<SignupScreen> {
                 onToggleObscure: () =>
                     setState(() => _motDePasseVisible = !_motDePasseVisible),
                 errorText: _erreurMotDePasse,
+              ),
+              const SizedBox(height: 14),
+              AppTextField(
+                controller: _confirmationMotDePasseController,
+                hintText: 'Confirmer le mot de passe',
+                icon: Icons.lock_reset_outlined,
+                obscureText: !_motDePasseVisible,
+                onToggleObscure: () =>
+                    setState(() => _motDePasseVisible = !_motDePasseVisible),
+                errorText: _erreurConfirmationMotDePasse,
               ),
               const SizedBox(height: 24),
               if (widget.erreur != null) ...[
