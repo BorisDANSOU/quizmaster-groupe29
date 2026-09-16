@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
 import 'domain/entities/auth_user.dart';
@@ -131,6 +132,30 @@ class _AuthFlowState extends State<AuthFlow> {
   bool _chargement = false;
   String? _erreur;
 
+  String _messageErreur(Object e) {
+    if (e is FirebaseAuthException) {
+      debugPrint('FirebaseAuthException: code=${e.code} message=${e.message}');
+      switch (e.code) {
+        case 'email-already-in-use':
+          return 'Cet email est déjà utilisé.';
+        case 'invalid-email':
+          return 'Adresse email invalide.';
+        case 'weak-password':
+          return 'Mot de passe trop faible (6 caractères minimum).';
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'Email ou mot de passe incorrect.';
+        case 'network-request-failed':
+          return 'Problème de connexion internet.';
+        default:
+          return 'Erreur (${e.code}) : ${e.message}';
+      }
+    }
+    debugPrint('Erreur non-Firebase: $e');
+    return 'Erreur inattendue : $e';
+  }
+
   Future<void> _connecter(String email, String motDePasse) async {
     setState(() {
       _chargement = true;
@@ -141,12 +166,8 @@ class _AuthFlowState extends State<AuthFlow> {
         email: email,
         password: motDePasse,
       );
-      // Pas besoin de navigation manuelle : authStateChanges() dans
-      // AuthGate detecte le changement et bascule automatiquement.
     } catch (e) {
-      setState(
-        () => _erreur = 'Connexion impossible : vérifie tes identifiants.',
-      );
+      setState(() => _erreur = _messageErreur(e));
     } finally {
       if (mounted) setState(() => _chargement = false);
     }
@@ -160,7 +181,7 @@ class _AuthFlowState extends State<AuthFlow> {
     try {
       await widget.authRepository.signInWithGoogle();
     } catch (e) {
-      setState(() => _erreur = 'Connexion Google impossible.');
+      setState(() => _erreur = _messageErreur(e));
     } finally {
       if (mounted) setState(() => _chargement = false);
     }
@@ -178,7 +199,7 @@ class _AuthFlowState extends State<AuthFlow> {
         displayName: nom,
       );
     } catch (e) {
-      setState(() => _erreur = 'Inscription impossible : email déjà utilisé ?');
+      setState(() => _erreur = _messageErreur(e));
     } finally {
       if (mounted) setState(() => _chargement = false);
     }
