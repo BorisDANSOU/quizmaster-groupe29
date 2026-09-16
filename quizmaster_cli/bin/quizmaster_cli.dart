@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:quizmaster_cli/models/quiz.dart';
-import 'package:quizmaster_cli/models/question.dart';
-import 'package:quizmaster_cli/services/json_service.dart';
-import 'package:quizmaster_cli/services/firestore_service.dart';
+import '../lib/models/quiz.dart';
+import '../lib/models/question.dart';
+import '../lib/services/json_service.dart';
+import '../lib/services/firestore_service.dart';
 
 /// Point d'entree du CLI QuizMaster.
 Future<void> main() async {
@@ -17,21 +17,30 @@ Future<void> main() async {
 
     switch (choix) {
       case '1':
-        creerQuiz(jsonService);
+        await creerQuiz(jsonService);
         break;
       case '2':
         listerQuiz();
         break;
       case '3':
-        modifierQuiz(jsonService);
+        await modifierQuiz(jsonService);
         break;
       case '4':
-        supprimerQuiz();
+        await supprimerQuiz();
         break;
       case '5':
         await publierQuiz();
         break;
       case '6':
+        await telechargerQuizDepuisFirebase(jsonService);
+        break;
+      case '7':
+        await publierTousLesQuizLocaux(jsonService);
+        break;
+      case '8':
+        await testerConnexionFirebase();
+        break;
+      case '9':
         continuer = false;
         print('A bientot !');
         break;
@@ -46,26 +55,33 @@ Future<void> main() async {
 void afficherMenu() {
   print('\n--- Menu ---');
   print('1. Creer un nouveau quiz');
-  print('2. Lister les quiz existants');
-  print('3. Modifier un quiz existant');
+  print('2. Lister les quiz locaux existants');
+  print('3. Modifier un quiz local existant');
   print('4. Supprimer un quiz');
-  print('5. Publier un quiz sur Firestore (mobile)');
-  print('6. Quitter');
+  print('5. Publier un quiz local specifique sur Firebase');
+  print('6. Synchroniser / Telecharger un quiz depuis Firebase');
+  print('7. Publier TOUS les quiz locaux en bloc (Bulk Upload)');
+  print('8. Tester la connexion Firebase (Diagnostic)');
+  print('9. Quitter');
 
   stdout.write('Ton choix : ');
 }
 
 /// Guide pas a pas pour creer un quiz complet
-void creerQuiz(JsonService jsonService) {
+Future<void> creerQuiz(JsonService jsonService) async {
   print('\n--- Creation d\'un nouveau quiz ---');
 
   String quizId = '';
-  while (quizId.isEmpty || File('data/$quizId.json').existsSync()) {
+  final regExpId = RegExp(r'^[a-zA-Z0-9_\-]+$');
+  while (quizId.isEmpty || File('data/$quizId.json').existsSync() || !regExpId.hasMatch(quizId)) {
     stdout.write('ID du quiz (ex: q001) : ');
     quizId = stdin.readLineSync() ?? '';
 
     if (quizId.isEmpty) {
       print('L\'ID ne peut pas etre vide.');
+    } else if (!regExpId.hasMatch(quizId)) {
+      print('L\'ID contient des caractères interdits (uniquement lettres, chiffres, tirets et underscores).');
+      quizId = '';
     } else if (File('data/$quizId.json').existsSync()) {
       print('Un quiz avec cet ID existe deja, choisis-en un autre.');
       quizId = ''; // force une nouvelle saisie
@@ -113,6 +129,12 @@ void creerQuiz(JsonService jsonService) {
   jsonService.ecrireQuiz(quiz, cheminFichier);
 
   print('\nQuiz sauvegarde avec succes dans : $cheminFichier');
+
+  stdout.write('Publier ce quiz sur Firebase immédiatement ? (o/n) : ');
+  final repPublier = stdin.readLineSync()?.toLowerCase();
+  if (repPublier == 'o') {
+    await FirestoreService().publierQuiz(quiz);
+  }
 }
 
 /// Guide pour creer une seule question QCM.
@@ -175,7 +197,14 @@ Question creerQuestion(int numero, String quizId) {
       numeroBonneReponse - 1; // conversion base 1 -> base 0
 
   stdout.write('Points pour cette question : ');
-  final points = int.tryParse(stdin.readLineSync() ?? '') ?? 10;
+  int points = -1;
+  while (points < 0) {
+    final inputPoints = stdin.readLineSync() ?? '';
+    points = int.tryParse(inputPoints) ?? 10;
+    if (points < 0) {
+      print('Les points ne peuvent pas être négatifs. Réessaie : ');
+    }
+  }
 
   return Question(
     id: '$quizId-${numero.toString().padLeft(2, '0')}',
@@ -189,7 +218,7 @@ Question creerQuestion(int numero, String quizId) {
 
 /// Permet de modifier un quiz existant : changer ses metadonnees
 /// et/ou lui ajouter de nouvelles questions.
-void modifierQuiz(JsonService jsonService) {
+Future<void> modifierQuiz(JsonService jsonService) async {
   stdout.write('\nID du quiz a modifier (ex: q001) : ');
   final quizId = stdin.readLineSync() ?? '';
   final cheminFichier = 'data/$quizId.json';
@@ -244,6 +273,13 @@ void modifierQuiz(JsonService jsonService) {
 
   jsonService.ecrireQuiz(quizModifie, cheminFichier);
   print('\nQuiz modifie et sauvegarde avec succes.');
+
+  stdout.write('Publier les modifications sur Firebase immédiatement ? (o/n) : ');
+  final repPublier = stdin.readLineSync()?.toLowerCase();
+  if (repPublier == 'o') {
+    await FirestoreService().publierQuiz(quizModifie);
+    print('\nQuiz publié avec succes sur Firebase');
+  }
 }
 
 /// Retourne la liste des chemins de fichiers de quiz presents dans un dossier.
@@ -278,7 +314,7 @@ void listerQuiz() {
 }
 
 /// Supprime le fichier JSON d'un quiz, apres confirmation de l'utilisateur.
-void supprimerQuiz() {
+Future<void> supprimerQuiz() async {
   stdout.write('\nID du quiz a supprimer (ex: q001) : ');
   final quizId = stdin.readLineSync() ?? '';
   final cheminFichier = 'data/$quizId.json';
@@ -294,7 +330,13 @@ void supprimerQuiz() {
 
   if (confirmation == 'o') {
     fichier.deleteSync();
-    print('Quiz supprime avec succes.');
+    print('Quiz local supprime avec succes.');
+
+    stdout.write('Le supprimer aussi de Firebase ? (o/n) : ');
+    final repFirebase = stdin.readLineSync()?.toLowerCase();
+    if (repFirebase == 'o') {
+      await FirestoreService().supprimerQuiz(quizId);
+    }
   } else {
     print('Suppression annulee.');
   }
@@ -312,4 +354,95 @@ Future<void> publierQuiz() async {
 
   final quiz = JsonService().lireQuiz(chemin);
   await FirestoreService().publierQuiz(quiz);
+}
+
+/// Télécharge les quiz depuis Firebase et les enregistre localement.
+Future<void> telechargerQuizDepuisFirebase(JsonService jsonService) async {
+  print('\n--- Synchronisation depuis Firebase ---');
+  try {
+    final quizEnLigne = await FirestoreService().recupererTousLesQuiz();
+    if (quizEnLigne.isEmpty) {
+      print('Aucun quiz trouvé sur Firebase.');
+      return;
+    }
+
+    print('Quiz disponibles sur Firebase :');
+    for (int i = 0; i < quizEnLigne.length; i++) {
+      print('${i + 1}. [${quizEnLigne[i].quizId}] ${quizEnLigne[i].titre}');
+    }
+
+    stdout.write('\nEntrez le numéro du quiz à télécharger (ou "t" pour TOUT télécharger) : ');
+    final choix = stdin.readLineSync()?.toLowerCase();
+
+    if (choix == 't') {
+      for (final quiz in quizEnLigne) {
+        final chemin = 'data/${quiz.quizId}.json';
+        jsonService.ecrireQuiz(quiz, chemin);
+      }
+      print('Tous les quiz ont été synchronisés avec succès localement !');
+    } else {
+      final index = (int.tryParse(choix ?? '') ?? 0) - 1;
+      if (index >= 0 && index < quizEnLigne.length) {
+        final quiz = quizEnLigne[index];
+        final chemin = 'data/${quiz.quizId}.json';
+        jsonService.ecrireQuiz(quiz, chemin);
+        print('Quiz "${quiz.quizId}" synchronisé et enregistré localement.');
+      } else {
+        print('Choix invalide.');
+      }
+    }
+  } catch (e) {
+    print('Erreur lors du téléchargement : $e');
+  }
+}
+
+/// Publie en bloc tous les fichiers JSON du dossier data/ vers Firebase.
+Future<void> publierTousLesQuizLocaux(JsonService jsonService) async {
+  print('\n--- Publication groupée (Bulk Upload) ---');
+  final chemins = listerCheminsQuiz('data');
+
+  if (chemins.isEmpty) {
+    print('Aucun quiz local trouvé dans le dossier data/.');
+    return;
+  }
+
+  print('${chemins.length} quiz locaux trouvés. Début de la publication...');
+  int succes = 0;
+
+  for (final chemin in chemins) {
+    try {
+      final quiz = jsonService.lireQuiz(chemin);
+      print('Publication de ${quiz.quizId}...');
+      await FirestoreService().publierQuiz(quiz);
+      succes++;
+    } catch (e) {
+      print('Échec de la publication pour le fichier $chemin : $e');
+    }
+  }
+
+  print('\nFin de la publication groupée : $succes/${chemins.length} quiz publiés avec succès !');
+}
+
+/// Vérifie si le fichier service_account.json est présent et si Firestore est accessible.
+Future<void> testerConnexionFirebase() async {
+  print('\n--- Diagnostic de la connexion Firebase ---');
+  final file = File('service_account.json');
+  
+  if (!file.existsSync()) {
+    print('[ERREUR] Le fichier "service_account.json" est ABSENT.');
+    print('Action requise : Téléchargez la clé JSON depuis la console Firebase et placez-la à la racine de quizmaster_cli.');
+    return;
+  }
+  print('[OK] Fichier "service_account.json" détecté.');
+
+  try {
+    print('Tentative d\'appel à l\'API Firestore...');
+    final service = FirestoreService();
+    // On tente simplement de lister les quiz pour voir si l'auth fonctionne
+    await service.recupererTousLesQuiz();
+    print('[SUCCÈS] Connexion établie ! Firestore répond correctement.');
+  } catch (e) {
+    print('[ERREUR] Echec de la connexion à Firestore.');
+    print('Détails de l\'erreur : $e');
+  }
 }
