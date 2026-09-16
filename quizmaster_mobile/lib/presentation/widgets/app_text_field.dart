@@ -33,7 +33,7 @@ class AppTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: const TextStyle(color: AppColors.textSecondaryLight),
-        prefixIcon: Icon(icon, color: AppColors.textSecondaryLight, size: 20),
+        prefixIcon: Icon(icon, color: AppColors.primaryBlue, size: 20),
         suffixIcon: onToggleObscure != null
             ? IconButton(
                 icon: Icon(
@@ -50,23 +50,31 @@ class AppTextField extends StatelessWidget {
         fillColor: AppColors.lightSurface,
         errorText: errorText,
         contentPadding: const EdgeInsets.symmetric(
-          vertical: 14,
+          vertical: 15,
           horizontal: 16,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(
             color: AppColors.primaryBlue,
             width: 1.5,
           ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.danger),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
         ),
       ),
     );

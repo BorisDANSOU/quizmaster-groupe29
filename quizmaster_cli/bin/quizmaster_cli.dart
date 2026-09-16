@@ -2,9 +2,10 @@ import 'dart:io';
 import 'package:quizmaster_cli/models/quiz.dart';
 import 'package:quizmaster_cli/models/question.dart';
 import 'package:quizmaster_cli/services/json_service.dart';
+import 'package:quizmaster_cli/services/firestore_service.dart';
 
 /// Point d'entree du CLI QuizMaster.
-void main() {
+Future<void> main() async {
   final jsonService = JsonService();
   bool continuer = true;
 
@@ -31,6 +32,9 @@ void main() {
         continuer = false;
         print('A bientot !');
         break;
+      case '6':
+        await publierQuiz();
+        break;
       default:
         print('Choix invalide, reessaie.\n');
     }
@@ -45,6 +49,7 @@ void afficherMenu() {
   print('3. Modifier un quiz existant');
   print('4. Supprimer un quiz');
   print('5. Quitter');
+  print('6. Publier un quiz sur Firestore (mobile)');
   stdout.write('Ton choix : ');
 }
 
@@ -291,4 +296,18 @@ void supprimerQuiz() {
   } else {
     print('Suppression annulee.');
   }
+}
+
+Future<void> publierQuiz() async {
+  stdout.write('\nID du quiz a publier : ');
+  final quizId = stdin.readLineSync() ?? '';
+  final chemin = 'data/$quizId.json';
+
+  if (!File(chemin).existsSync()) {
+    print('Quiz introuvable.');
+    return;
+  }
+
+  final quiz = JsonService().lireQuiz(chemin);
+  await FirestoreService().publierQuiz(quiz);
 }

@@ -2,11 +2,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quizmaster_mobile/domain/usecases/charger_profil_usecase.dart';
 
 import 'firebase_options.dart';
 import 'domain/entities/auth_user.dart';
 import 'domain/usecases/charger_liste_quiz_usecase.dart';
 import 'domain/usecases/valider_reponse_usecase.dart';
+import 'domain/usecases/charger_classement_usecase.dart';
+import 'domain/usecases/enregistrer_resultat_usecase.dart';
 
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/leaderboard_remote_datasource.dart';
@@ -21,6 +24,7 @@ import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/signup_screen.dart';
 import 'presentation/screens/splash_screen.dart';
 import 'presentation/screens/main_navigation_screen.dart';
+import 'presentation/theme/app_colors.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,8 +45,6 @@ Future<void> main() async {
   );
 
   runApp(
-    // ProviderScope conserve pour la prochaine etape (flux Firestore temps
-    // reel via Riverpod) — n'a aucun effet tant qu'aucun provider n'est lu.
     ProviderScope(
       child: QuizMasterApp(
         authRepository: authRepository,
@@ -75,7 +77,22 @@ class QuizMasterApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF3E7BFA),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primaryBlue,
+          primary: AppColors.primaryBlue,
+          secondary: AppColors.primaryBlueDark,
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: AppColors.lightBackground,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+        ),
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: AppColors.textPrimaryLight,
+          displayColor: AppColors.textPrimaryLight,
+        ),
       ),
       home: AuthGate(
         authRepository: authRepository,
@@ -88,9 +105,9 @@ class QuizMasterApp extends StatelessWidget {
 }
 
 /// Dirige l'utilisateur vers l'auth ou l'app principale selon l'etat
-/// REEL de la session Firebase (authStateChanges) — c'est ici que
-/// l'auto-connexion fonctionne concretement.
-class AuthGate extends StatelessWidget {
+/// REEL de la session Firebase (authStateChanges).
+/// L'ecran de splash est affiche d'abord pour le lancement propre de l'app.
+class AuthGate extends StatefulWidget {
   const AuthGate({
     super.key,
     required this.authRepository,
@@ -105,23 +122,50 @@ class AuthGate extends StatelessWidget {
   final LeaderboardRepositoryImpl leaderboardRepository;
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<AuthUser?>(
-      stream: authRepository.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return SplashScreen(onInitialisationTerminee: () {});
-        }
+  State<AuthGate> createState() => _AuthGateState();
+}
 
+class _AuthGateState extends State<AuthGate> {
+  bool _afficherSplash = true;
+
+  void _finSplash() {
+    if (mounted) {
+      setState(() => _afficherSplash = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_afficherSplash) {
+      return SplashScreen(onInitialisationTerminee: _finSplash);
+    }
+
+    return StreamBuilder<AuthUser?>(
+      stream: widget.authRepository.authStateChanges(),
+      builder: (context, snapshot) {
         if (snapshot.hasData) {
           return MainNavigationScreen(
-            chargerListeQuiz: ChargerListeQuizUseCase(quizRepository),
+            uid: snapshot.data!.uid,
+            chargerListeQuiz: ChargerListeQuizUseCase(widget.quizRepository),
             validerReponse: const ValiderReponseUseCase(),
-            onDeconnexion: () => authRepository.signOut(),
+            chargerProfil: ChargerProfilUsecase(widget.profilRepository),
+            chargerClassement: ChargerClassementUseCase(
+              widget.leaderboardRepository,
+            ),
+            enregistrerResultat: EnregistrerResultatUseCase(
+              widget.leaderboardRepository,
+              widget.profilRepository,
+            ),
+            onDeconnexion: () => widget.authRepository.signOut(),
           );
         }
 
-        return AuthFlow(authRepository: authRepository);
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !_afficherSplash) {
+          return AuthFlow(authRepository: widget.authRepository);
+        }
+
+        return AuthFlow(authRepository: widget.authRepository);
       },
     );
   }

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../domain/entities/profil_utilisateur.dart';
 import '../../domain/entities/quiz.dart';
+import '../../domain/entities/resultat_quiz.dart';
+import '../../domain/usecases/charger_classement_usecase.dart';
 import '../../domain/usecases/charger_liste_quiz_usecase.dart';
+import '../../domain/usecases/charger_profil_usecase.dart';
+import '../../domain/usecases/enregistrer_resultat_usecase.dart';
 import '../../domain/usecases/valider_reponse_usecase.dart';
 import '../theme/app_colors.dart';
 import 'home_screen.dart';
@@ -12,13 +17,21 @@ import 'quiz_flow_screen.dart';
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({
     super.key,
+    required this.uid,
     required this.chargerListeQuiz,
     required this.validerReponse,
+    required this.chargerProfil,
+    required this.chargerClassement,
+    required this.enregistrerResultat,
     required this.onDeconnexion,
   });
 
+  final String uid;
   final ChargerListeQuizUseCase chargerListeQuiz;
   final ValiderReponseUseCase validerReponse;
+  final ChargerProfilUsecase chargerProfil;
+  final ChargerClassementUseCase chargerClassement;
+  final EnregistrerResultatUseCase enregistrerResultat;
   final VoidCallback onDeconnexion;
 
   @override
@@ -28,6 +41,8 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _ongletActuel = 0;
   List<Quiz> _quizzes = [];
+  ProfilUtilisateur? _profil;
+  List<ProfilUtilisateur> _classement = [];
   bool _chargement = true;
 
   static const _couleursCategories = {
@@ -46,15 +61,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
-    _chargerQuiz();
+    _chargerTout();
   }
 
-  Future<void> _chargerQuiz() async {
-    final quizzes = await widget.chargerListeQuiz.call();
+  Future<void> _chargerTout() async {
+    final resultats = await Future.wait([
+      widget.chargerListeQuiz.call(),
+      widget.chargerProfil.call(widget.uid),
+      widget.chargerClassement.call(limit: 20),
+    ]);
+
     if (!mounted) return;
     setState(() {
-      _quizzes = quizzes;
+      _quizzes = resultats[0] as List<Quiz>;
+      _profil = resultats[1] as ProfilUtilisateur?;
+      _classement = resultats[2] as List<ProfilUtilisateur>;
       _chargement = false;
+    });
+  }
+
+  Future<void> _rafraichirProfilEtClassement() async {
+    final profil = await widget.chargerProfil.call(widget.uid);
+    final classement = await widget.chargerClassement.call(limit: 20);
+    if (!mounted) return;
+    setState(() {
+      _profil = profil;
+      _classement = classement;
     });
   }
 
@@ -67,6 +99,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           quiz: quiz,
           validerReponse: widget.validerReponse,
           onTerminer: () => Navigator.of(context).pop(),
+          onQuizTermine: (score) async {
+            await widget.enregistrerResultat.call(
+              ResultatQuiz(
+                quizId: quiz.quizId,
+                joueur: widget.uid,
+                score: score,
+                date: DateTime.now(),
+              ),
+              titreQuiz: quiz.titre,
+            );
+            await _rafraichirProfilEtClassement();
+          },
         ),
       ),
     );
@@ -84,7 +128,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       index: _ongletActuel,
       children: [
         HomeScreen(
-          nomUtilisateur: '',
+          nomUtilisateur: _profil?.nom ?? '',
           quizEnCours: null,
           categories: categoriesUniques
               .map(
@@ -145,17 +189,55 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           onRecherche: (texte) {},
         ),
         LeaderboardScreen(
-          podium: const [],
-          classement: const [],
+          podium: _classement
+              .take(3)
+              .toList()
+              .asMap()
+              .entries
+              .map(
+                (e) => JoueurClassement(
+                  uid: e.value.uid,
+                  rang: e.key + 1,
+                  nom: e.value.nom,
+                  points: e.value.quizJoues,
+                ),
+              )
+              .toList(),
+          classement: _classement
+              .skip(3)
+              .toList()
+              .asMap()
+              .entries
+              .map(
+                (e) => JoueurClassement(
+                  uid: e.value.uid,
+                  rang: e.key + 4,
+                  nom: e.value.nom,
+                  points: e.value.quizJoues,
+                ),
+              )
+              .toList(),
           onChangerOnglet: _changerOnglet,
+          uidUtilisateurActuel: widget.uid,
         ),
         ProfileScreen(
-          nom: '',
-          email: '',
-          quizJoues: 0,
-          meilleureSerie: 0,
-          tauxReussite: 0,
-          historique: const [],
+          nom: _profil?.nom ?? '',
+          email: _profil?.email ?? '',
+          quizJoues: _profil?.quizJoues ?? 0,
+          meilleureSerie: _profil?.meilleureSerie ?? 0,
+          tauxReussite: _profil?.tauxReussite ?? 0,
+          historique: (_profil?.historique ?? [])
+              .map(
+                (h) => HistoriqueItemData(
+                  categorie: '',
+                  titre: h.titre,
+                  quandEtDuree: h.date.toLocal().toString(),
+                  pourcentage: h.score,
+                  icone: Icons.quiz,
+                  couleur: AppColors.primaryBlue,
+                ),
+              )
+              .toList(),
           onEditer: () {},
           onVoirToutHistorique: () {},
           onTapHistorique: (item) {},

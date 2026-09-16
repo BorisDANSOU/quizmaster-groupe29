@@ -26,7 +26,7 @@ class AppButton extends StatelessWidget {
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.5,
               color: Colors.white,
             ),
           )
@@ -38,36 +38,45 @@ class AppButton extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: isOutlined ? AppColors.textPrimaryLight : Colors.white,
                 ),
               ),
             ],
           );
 
+    final buttonStyle = isOutlined
+        ? OutlinedButton.styleFrom(
+            side: const BorderSide(color: AppColors.borderSoft, width: 1.2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            backgroundColor: Colors.white,
+          )
+        : ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryBlue,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            shadowColor: AppColors.primaryBlue.withValues(alpha: 0.2),
+          );
+
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 54,
       child: isOutlined
           ? OutlinedButton(
               onPressed: isLoading ? null : onPressed,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFE5E7EB)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
+              style: buttonStyle,
               child: enfant,
             )
           : ElevatedButton(
               onPressed: isLoading ? null : onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
+              style: buttonStyle,
               child: enfant,
             ),
     );

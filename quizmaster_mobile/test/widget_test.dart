@@ -11,6 +11,7 @@ import 'package:quizmaster_mobile/data/repositories/leaderboard_repository_impl.
 import 'package:quizmaster_mobile/data/repositories/profil_repository_impl.dart';
 import 'package:quizmaster_mobile/data/repositories/quiz_repository_impl.dart';
 import 'package:quizmaster_mobile/main.dart';
+import 'package:quizmaster_mobile/presentation/screens/splash_screen.dart';
 
 void main() {
   testWidgets('QuizMaster app renders the startup screen', (tester) async {
@@ -37,7 +38,10 @@ void main() {
       ),
     );
 
-    await tester.pump(const Duration(seconds: 3));
+    await tester.pump();
+    expect(find.byType(SplashScreen), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
 
     expect(find.text('Se connecter'), findsOneWidget);
     expect(find.text('Bienvenue !'), findsOneWidget);

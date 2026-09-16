@@ -70,19 +70,23 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       'Filtres de difficulté',
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimaryLight,
                       ),
                     ),
                     const SizedBox(height: 10),
                     _buildFiltresDifficulte(),
                     const SizedBox(height: 20),
                     ..._categoriesAffichees.map(
-                      (categorie) => CategorieListTile(
-                        nom: categorie.nom,
-                        resume: categorie.resume,
-                        icone: categorie.icone,
-                        couleur: categorie.couleur,
-                        onTap: () => widget.onTapCategorie(categorie),
+                      (categorie) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: CategorieListTile(
+                          nom: categorie.nom,
+                          resume: categorie.resume,
+                          icone: categorie.icone,
+                          couleur: categorie.couleur,
+                          onTap: () => widget.onTapCategorie(categorie),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

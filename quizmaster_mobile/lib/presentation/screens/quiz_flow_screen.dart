@@ -4,20 +4,19 @@ import '../../domain/usecases/valider_reponse_usecase.dart';
 import 'quiz_screen.dart';
 import 'result_screen.dart';
 
-/// Gere le deroulement complet d'un quiz reel : question par question,
-/// puis affiche le resultat final. Utilise ValiderReponseUseCase pour
-/// la logique de correction (pas de comparaison faite ici directement).
 class QuizFlowScreen extends StatefulWidget {
   const QuizFlowScreen({
     super.key,
     required this.quiz,
     required this.validerReponse,
     required this.onTerminer,
+    required this.onQuizTermine,
   });
 
   final Quiz quiz;
   final ValiderReponseUseCase validerReponse;
   final VoidCallback onTerminer;
+  final ValueChanged<int> onQuizTermine;
 
   @override
   State<QuizFlowScreen> createState() => _QuizFlowScreenState();
@@ -40,6 +39,7 @@ class _QuizFlowScreenState extends State<QuizFlowScreen> {
       setState(() => _indexQuestion++);
     } else {
       setState(() => _quizTermine = true);
+      widget.onQuizTermine(_bonnesReponses);
     }
   }
 
