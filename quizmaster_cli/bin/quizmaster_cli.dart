@@ -29,12 +29,13 @@ Future<void> main() async {
         supprimerQuiz();
         break;
       case '5':
+        await publierQuiz();
+        break;
+      case '6':
         continuer = false;
         print('A bientot !');
         break;
-      case '6':
-        await publierQuiz();
-        break;
+
       default:
         print('Choix invalide, reessaie.\n');
     }
@@ -48,8 +49,9 @@ void afficherMenu() {
   print('2. Lister les quiz existants');
   print('3. Modifier un quiz existant');
   print('4. Supprimer un quiz');
-  print('5. Quitter');
-  print('6. Publier un quiz sur Firestore (mobile)');
+  print('5. Publier un quiz sur Firestore (mobile)');
+  print('6. Quitter');
+
   stdout.write('Ton choix : ');
 }
 
