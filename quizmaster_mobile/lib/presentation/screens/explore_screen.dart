@@ -157,7 +157,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _categoriesFiltre.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final label = _categoriesFiltre[index];
           return FilterChipCustom(
@@ -176,7 +176,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _difficultesFiltre.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, index) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final label = _difficultesFiltre[index];
           return FilterChipCustom(

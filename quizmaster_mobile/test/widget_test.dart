@@ -1,3 +1,5 @@
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:quizmaster_mobile/data/datasources/auth_remote_datasource.dart';
@@ -11,30 +13,33 @@ import 'package:quizmaster_mobile/data/repositories/quiz_repository_impl.dart';
 import 'package:quizmaster_mobile/main.dart';
 
 void main() {
-  testWidgets(
-    'QuizMaster app renders the startup screen',
-    (tester) async {
-      await tester.pumpWidget(
-        QuizMasterApp(
-          authRepository: AuthRepositoryImpl(
-            dataSource: AuthRemoteDataSource(),
-          ),
-          quizRepository: QuizRepositoryImpl(
-            dataSource: const QuizLocalDataSource(
-              assetPath: 'assets/quizzes.json',
-            ),
-          ),
-          profilRepository: ProfilRepositoryImpl(
-            dataSource: ProfilRemoteDataSource(),
-          ),
-          leaderboardRepository: LeaderboardRepositoryImpl(
-            dataSource: LeaderboardRemoteDataSource(),
+  testWidgets('QuizMaster app renders the startup screen', (tester) async {
+    // Simule Firebase Auth ET Firestore, sans jamais toucher au vrai Firebase.
+    final fakeFirestore = FakeFirebaseFirestore();
+    final authRemoteDataSource = AuthRemoteDataSource(
+      firebaseAuth: MockFirebaseAuth(),
+    );
+
+    await tester.pumpWidget(
+      QuizMasterApp(
+        authRepository: AuthRepositoryImpl(dataSource: authRemoteDataSource),
+        quizRepository: QuizRepositoryImpl(
+          dataSource: const QuizLocalDataSource(
+            assetPath: 'assets/quizzes.json',
           ),
         ),
-      );
+        profilRepository: ProfilRepositoryImpl(
+          dataSource: ProfilRemoteDataSource(firestore: fakeFirestore),
+        ),
+        leaderboardRepository: LeaderboardRepositoryImpl(
+          dataSource: LeaderboardRemoteDataSource(firestore: fakeFirestore),
+        ),
+      ),
+    );
 
-      expect(find.text('Connexion'), findsAtLeastNWidgets(1));
-    },
-    skip: true, // TODO
-  );
+    await tester.pump(const Duration(seconds: 3));
+
+    expect(find.text('Se connecter'), findsOneWidget);
+    expect(find.text('Bienvenue !'), findsOneWidget);
+  });
 }

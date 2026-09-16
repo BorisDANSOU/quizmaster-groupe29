@@ -40,7 +40,7 @@ class MenuRow extends StatelessWidget {
             Icon(
               Icons.chevron_right,
               size: 18,
-              color: couleur.withOpacity(0.6),
+              color: couleur.withValues(alpha: 0.6),
             ),
           ],
         ),

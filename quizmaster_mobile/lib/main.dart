@@ -1,8 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:quizmaster_mobile/domain/entities/auth_user.dart';
 
-/// import 'firebase_options.dart';
+import 'firebase_options.dart';
+import 'domain/entities/auth_user.dart';
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/leaderboard_remote_datasource.dart';
 import 'data/datasources/profil_remote_datasource.dart';
@@ -12,25 +12,22 @@ import 'data/repositories/leaderboard_repository_impl.dart';
 import 'data/repositories/profil_repository_impl.dart';
 import 'data/repositories/quiz_repository_impl.dart';
 
+import 'presentation/screens/login_screen.dart';
+import 'presentation/screens/signup_screen.dart';
+import 'presentation/screens/splash_screen.dart';
+import 'presentation/screens/main_navigation_screen.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialisation de Firebase avec les options du projet
-  await Firebase.initializeApp(
-    ///options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Initialisation des Repositories (Injection simple pour l'exemple)
   final authRepository = AuthRepositoryImpl(dataSource: AuthRemoteDataSource());
-
   final quizRepository = QuizRepositoryImpl(
     dataSource: const QuizLocalDataSource(assetPath: 'assets/quizzes.json'),
   );
-
   final profilRepository = ProfilRepositoryImpl(
     dataSource: ProfilRemoteDataSource(),
   );
-
   final leaderboardRepository = LeaderboardRepositoryImpl(
     dataSource: LeaderboardRemoteDataSource(),
   );
@@ -46,11 +43,6 @@ Future<void> main() async {
 }
 
 class QuizMasterApp extends StatelessWidget {
-  final AuthRepositoryImpl authRepository;
-  final QuizRepositoryImpl quizRepository;
-  final ProfilRepositoryImpl profilRepository;
-  final LeaderboardRepositoryImpl leaderboardRepository;
-
   const QuizMasterApp({
     super.key,
     required this.authRepository,
@@ -59,6 +51,11 @@ class QuizMasterApp extends StatelessWidget {
     required this.leaderboardRepository,
   });
 
+  final AuthRepositoryImpl authRepository;
+  final QuizRepositoryImpl quizRepository;
+  final ProfilRepositoryImpl profilRepository;
+  final LeaderboardRepositoryImpl leaderboardRepository;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -66,25 +63,33 @@ class QuizMasterApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2E7D32), // Vert forêt pour le thème
-        brightness: Brightness.light,
+        colorSchemeSeed: const Color(0xFF3E7BFA),
       ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF2E7D32),
-        brightness: Brightness.dark,
+      home: AuthGate(
+        authRepository: authRepository,
+        quizRepository: quizRepository,
+        profilRepository: profilRepository,
+        leaderboardRepository: leaderboardRepository,
       ),
-      home: AuthGate(authRepository: authRepository),
     );
   }
 }
 
-/// Widget responsable de diriger l'utilisateur vers la page de connexion
-/// ou vers l'accueil en fonction de son état d'authentification.
+/// Dirige l'utilisateur vers l'auth ou l'app principale selon l'etat
+/// REEL de la session Firebase (authStateChanges)
 class AuthGate extends StatelessWidget {
-  final AuthRepositoryImpl authRepository;
+  const AuthGate({
+    super.key,
+    required this.authRepository,
+    required this.quizRepository,
+    required this.profilRepository,
+    required this.leaderboardRepository,
+  });
 
-  const AuthGate({super.key, required this.authRepository});
+  final AuthRepositoryImpl authRepository;
+  final QuizRepositoryImpl quizRepository;
+  final ProfilRepositoryImpl profilRepository;
+  final LeaderboardRepositoryImpl leaderboardRepository;
 
   @override
   Widget build(BuildContext context) {
@@ -92,70 +97,111 @@ class AuthGate extends StatelessWidget {
       stream: authRepository.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return SplashScreen(onInitialisationTerminee: () {});
         }
 
         if (snapshot.hasData) {
-          return HomePage(user: snapshot.data!, authRepository: authRepository);
+          return MainNavigationScreen(
+            onDemarrerQuiz: () {
+              // TODO: brancher sur le vrai flux quiz une fois quiz_provider pret
+            },
+            onDeconnexion: () => authRepository.signOut(),
+          );
         }
 
-        return const LoginPage();
+        return AuthFlow(authRepository: authRepository);
       },
     );
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+/// Gere l'aller-retour Connexion <-> Inscription tant que
+/// l'utilisateur n'est pas connecte.
+class AuthFlow extends StatefulWidget {
+  const AuthFlow({super.key, required this.authRepository});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Connexion')),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            // Logique de connexion à implémenter
-          },
-          child: const Text('Se connecter'),
-        ),
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key, required this.user, required this.authRepository});
-
-  final AuthUser user;
   final AuthRepositoryImpl authRepository;
 
   @override
+  State<AuthFlow> createState() => _AuthFlowState();
+}
+
+class _AuthFlowState extends State<AuthFlow> {
+  bool _surInscription = false;
+  bool _chargement = false;
+  String? _erreur;
+
+  Future<void> _connecter(String email, String motDePasse) async {
+    setState(() {
+      _chargement = true;
+      _erreur = null;
+    });
+    try {
+      await widget.authRepository.signInWithEmailAndPassword(
+        email: email,
+        password: motDePasse,
+      );
+      // Pas besoin de navigation manuelle : authStateChanges() dans
+      // AuthGate detecte le changement et bascule automatiquement.
+    } catch (e) {
+      setState(
+        () => _erreur = 'Connexion impossible : vérifie tes identifiants.',
+      );
+    } finally {
+      if (mounted) setState(() => _chargement = false);
+    }
+  }
+
+  Future<void> _connecterGoogle() async {
+    setState(() {
+      _chargement = true;
+      _erreur = null;
+    });
+    try {
+      await widget.authRepository.signInWithGoogle();
+    } catch (e) {
+      setState(() => _erreur = 'Connexion Google impossible.');
+    } finally {
+      if (mounted) setState(() => _chargement = false);
+    }
+  }
+
+  Future<void> _inscrire(String nom, String email, String motDePasse) async {
+    setState(() {
+      _chargement = true;
+      _erreur = null;
+    });
+    try {
+      await widget.authRepository.signUpWithEmailAndPassword(
+        email: email,
+        password: motDePasse,
+        displayName: nom,
+      );
+    } catch (e) {
+      setState(() => _erreur = 'Inscription impossible : email déjà utilisé ?');
+    } finally {
+      if (mounted) setState(() => _chargement = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('QuizMaster'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authRepository.signOut();
-            },
-          ),
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Bienvenue, ${user.displayName ?? user.email ?? 'joueur'}'),
-            const SizedBox(height: 20),
-            const Text('Prêt pour un quiz ?'),
-          ],
-        ),
-      ),
+    if (_surInscription) {
+      return SignupScreen(
+        isLoading: _chargement,
+        erreur: _erreur,
+        onInscription: _inscrire,
+        onNaviguerVersConnexion: () => setState(() => _surInscription = false),
+      );
+    }
+
+    return LoginScreen(
+      isLoading: _chargement,
+      erreur: _erreur,
+      onConnexion: _connecter,
+      onConnexionGoogle: _connecterGoogle,
+      onNaviguerVersInscription: () => setState(() => _surInscription = true),
+      onMotDePasseOublie: () {},
     );
   }
 }

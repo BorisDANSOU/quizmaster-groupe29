@@ -64,7 +64,7 @@ class ReponseOptionTile extends StatelessWidget {
               height: 28,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

@@ -24,7 +24,7 @@ class ClassementRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
       decoration: estUtilisateurActuel
           ? BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.06),
+              color: AppColors.primaryBlue.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(10),
             )
           : null,

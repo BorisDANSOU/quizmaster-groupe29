@@ -149,7 +149,7 @@ class ResultScreen extends StatelessWidget {
         Icon(icone, color: couleur, size: 18),
         const SizedBox(width: 6),
         Text(
-          '$label',
+          'label',
           style: const TextStyle(
             fontSize: 12,
             color: AppColors.textSecondaryDark,
