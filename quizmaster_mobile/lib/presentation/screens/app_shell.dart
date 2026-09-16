@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../domain/usecases/charger_liste_quiz_usecase.dart';
+import '../../domain/usecases/valider_reponse_usecase.dart';
+import '../../data/datasources/quiz_local_datasource.dart';
+import '../../data/repositories/quiz_repository_impl.dart';
 import 'splash_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
 import 'main_navigation_screen.dart';
-import 'quiz_flow_screen.dart';
 
-enum _Etape { splash, connexion, inscription, principal, quiz }
+enum _Etape { splash, connexion, inscription, principal }
 
-/// Racine de la navigation de l'app. Gere les transitions entre
-/// Splash -> Auth -> App principale -> Quiz
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -19,14 +20,18 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   _Etape _etape = _Etape.splash;
 
+  late final _quizRepository = QuizRepositoryImpl(
+    dataSource: const QuizLocalDataSource(assetPath: 'assets/quizzes.json'),
+  );
+  late final _chargerListeQuiz = ChargerListeQuizUseCase(_quizRepository);
+  final _validerReponse = const ValiderReponseUseCase();
+
   @override
   Widget build(BuildContext context) {
     switch (_etape) {
       case _Etape.splash:
         return SplashScreen(
           onInitialisationTerminee: () {
-            // Ici, une fois Firebase branche : verifier authStateChanges()
-            // et aller directement sur _Etape.principal si deja connecte.
             setState(() => _etape = _Etape.connexion);
           },
         );
@@ -34,11 +39,11 @@ class _AppShellState extends State<AppShell> {
       case _Etape.connexion:
         return LoginScreen(
           onConnexion: (email, motDePasse) async {
-            debugPrint('Connexion : $email');
+            debugPrint('Connexion (simulee) : $email');
             setState(() => _etape = _Etape.principal);
           },
           onConnexionGoogle: () async {
-            debugPrint('Connexion Google');
+            debugPrint('Connexion Google (simulee)');
             setState(() => _etape = _Etape.principal);
           },
           onNaviguerVersInscription: () =>
@@ -49,7 +54,7 @@ class _AppShellState extends State<AppShell> {
       case _Etape.inscription:
         return SignupScreen(
           onInscription: (nom, email, motDePasse) async {
-            debugPrint('Inscription : $nom / $email');
+            debugPrint('Inscription (simulee) : $nom / $email');
             setState(() => _etape = _Etape.principal);
           },
           onNaviguerVersConnexion: () =>
@@ -58,13 +63,9 @@ class _AppShellState extends State<AppShell> {
 
       case _Etape.principal:
         return MainNavigationScreen(
-          onDemarrerQuiz: () => setState(() => _etape = _Etape.quiz),
+          chargerListeQuiz: _chargerListeQuiz,
+          validerReponse: _validerReponse,
           onDeconnexion: () => setState(() => _etape = _Etape.connexion),
-        );
-
-      case _Etape.quiz:
-        return QuizFlowScreen(
-          onTerminer: () => setState(() => _etape = _Etape.principal),
         );
     }
   }

@@ -1,9 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'firebase_options.dart';
 import 'domain/entities/auth_user.dart';
+import 'domain/usecases/charger_liste_quiz_usecase.dart';
+import 'domain/usecases/valider_reponse_usecase.dart';
+
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/leaderboard_remote_datasource.dart';
 import 'data/datasources/profil_remote_datasource.dart';
@@ -23,22 +27,29 @@ Future<void> main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   final authRepository = AuthRepositoryImpl(dataSource: AuthRemoteDataSource());
+
   final quizRepository = QuizRepositoryImpl(
     dataSource: const QuizLocalDataSource(assetPath: 'assets/quizzes.json'),
   );
+
   final profilRepository = ProfilRepositoryImpl(
     dataSource: ProfilRemoteDataSource(),
   );
+
   final leaderboardRepository = LeaderboardRepositoryImpl(
     dataSource: LeaderboardRemoteDataSource(),
   );
 
   runApp(
-    QuizMasterApp(
-      authRepository: authRepository,
-      quizRepository: quizRepository,
-      profilRepository: profilRepository,
-      leaderboardRepository: leaderboardRepository,
+    // ProviderScope conserve pour la prochaine etape (flux Firestore temps
+    // reel via Riverpod) — n'a aucun effet tant qu'aucun provider n'est lu.
+    ProviderScope(
+      child: QuizMasterApp(
+        authRepository: authRepository,
+        quizRepository: quizRepository,
+        profilRepository: profilRepository,
+        leaderboardRepository: leaderboardRepository,
+      ),
     ),
   );
 }
@@ -77,7 +88,8 @@ class QuizMasterApp extends StatelessWidget {
 }
 
 /// Dirige l'utilisateur vers l'auth ou l'app principale selon l'etat
-/// REEL de la session Firebase (authStateChanges)
+/// REEL de la session Firebase (authStateChanges) — c'est ici que
+/// l'auto-connexion fonctionne concretement.
 class AuthGate extends StatelessWidget {
   const AuthGate({
     super.key,
@@ -103,9 +115,8 @@ class AuthGate extends StatelessWidget {
 
         if (snapshot.hasData) {
           return MainNavigationScreen(
-            onDemarrerQuiz: () {
-              // TODO: brancher sur le vrai flux quiz une fois quiz_provider pret
-            },
+            chargerListeQuiz: ChargerListeQuizUseCase(quizRepository),
+            validerReponse: const ValiderReponseUseCase(),
             onDeconnexion: () => authRepository.signOut(),
           );
         }

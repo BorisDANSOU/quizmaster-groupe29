@@ -8,4 +8,6 @@ abstract class QuizRepository {
     String? category,
     String? difficulty,
   });
+
+  Stream<List<Quiz>> watchQuizzes();
 }
