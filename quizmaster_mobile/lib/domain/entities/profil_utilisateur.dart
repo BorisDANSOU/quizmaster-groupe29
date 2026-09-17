@@ -41,6 +41,7 @@ class ProfilUtilisateur {
     required this.nom,
     required this.email,
     required this.quizJoues,
+    this.totalPoints = 0,
     required this.meilleureSerie,
     required this.tauxReussite,
     required this.historique,
@@ -50,6 +51,7 @@ class ProfilUtilisateur {
   final String nom;
   final String email;
   final int quizJoues;
+  final int totalPoints;
   final int meilleureSerie;
   final int tauxReussite;
   final List<HistoriqueQuiz> historique;
@@ -67,6 +69,7 @@ class ProfilUtilisateur {
       nom: (json['nom'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       quizJoues: (json['quizJoues'] as num? ?? 0).toInt(),
+      totalPoints: (json['totalPoints'] as num? ?? 0).toInt(),
       meilleureSerie: (json['meilleureSerie'] as num? ?? 0).toInt(),
       tauxReussite: (json['tauxReussite'] as num? ?? 0).toInt(),
       historique: historique,
@@ -79,6 +82,7 @@ class ProfilUtilisateur {
       'nom': nom,
       'email': email,
       'quizJoues': quizJoues,
+      'totalPoints': totalPoints,
       'meilleureSerie': meilleureSerie,
       'tauxReussite': tauxReussite,
       'historique': historique.map((entry) => entry.toJson()).toList(),
@@ -90,6 +94,7 @@ class ProfilUtilisateur {
     String? nom,
     String? email,
     int? quizJoues,
+    int? totalPoints,
     int? meilleureSerie,
     int? tauxReussite,
     List<HistoriqueQuiz>? historique,
@@ -99,6 +104,7 @@ class ProfilUtilisateur {
       nom: nom ?? this.nom,
       email: email ?? this.email,
       quizJoues: quizJoues ?? this.quizJoues,
+      totalPoints: totalPoints ?? this.totalPoints,
       meilleureSerie: meilleureSerie ?? this.meilleureSerie,
       tauxReussite: tauxReussite ?? this.tauxReussite,
       historique: historique ?? this.historique,

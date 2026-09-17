@@ -6,7 +6,7 @@ class ChargerClassementUseCase {
 
   final LeaderboardRepository _leaderboardRepository;
 
-  Future<List<ProfilUtilisateur>> call({int limit = 20}) {
+  Future<List<ProfilUtilisateur>> call({int limit = 10}) {
     return _leaderboardRepository.getLeaderboard(limit: limit);
   }
 }

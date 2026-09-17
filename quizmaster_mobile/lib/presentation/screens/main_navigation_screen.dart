@@ -89,7 +89,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final resultats = await Future.wait([
       widget.chargerListeQuiz.call(),
       widget.chargerProfil.call(widget.uid),
-      widget.chargerClassement.call(limit: 20),
+      widget.chargerClassement.call(limit: 10),
     ]);
 
     if (!mounted) return;
@@ -102,6 +102,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               nom: widget.nomUtilisateur,
               email: widget.emailUtilisateur,
               quizJoues: 0,
+              totalPoints: 0,
               meilleureSerie: 0,
               tauxReussite: 0,
               historique: const [],
@@ -121,7 +122,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Future<void> _rafraichirProfilEtClassement() async {
     final profil = await widget.chargerProfil.call(widget.uid);
-    final classement = await widget.chargerClassement.call(limit: 20);
+    final classement = await widget.chargerClassement.call(limit: 10);
     if (!mounted) return;
     setState(() {
       _profil = profil;
@@ -192,6 +193,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         ),
       ),
     );
+  }
+
+  String _nomAffichePourClassement(ProfilUtilisateur utilisateur) {
+    if (utilisateur.uid == widget.uid) {
+      return 'Vous';
+    }
+    if (utilisateur.nom.trim().isNotEmpty) {
+      return utilisateur.nom;
+    }
+    return 'Joueur';
   }
 
   @override
@@ -276,8 +287,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 (e) => JoueurClassement(
                   uid: e.value.uid,
                   rang: e.key + 1,
-                  nom: e.value.nom,
-                  points: e.value.quizJoues,
+                  nom: _nomAffichePourClassement(e.value),
+                  points: e.value.totalPoints,
                 ),
               )
               .toList(),
@@ -290,8 +301,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 (e) => JoueurClassement(
                   uid: e.value.uid,
                   rang: e.key + 4,
-                  nom: e.value.nom,
-                  points: e.value.quizJoues,
+                  nom: _nomAffichePourClassement(e.value),
+                  points: e.value.totalPoints,
                 ),
               )
               .toList(),

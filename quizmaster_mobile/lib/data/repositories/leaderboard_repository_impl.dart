@@ -10,7 +10,7 @@ class LeaderboardRepositoryImpl implements LeaderboardRepository {
   final LeaderboardRemoteDataSource _dataSource;
 
   @override
-  Future<List<ProfilUtilisateur>> getLeaderboard({int limit = 20}) {
+  Future<List<ProfilUtilisateur>> getLeaderboard({int limit = 10}) {
     return _dataSource.getLeaderboard(limit: limit);
   }
 

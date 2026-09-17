@@ -18,6 +18,10 @@ class ProfilRemoteDataSource {
         nom: '',
         email: '',
         quizJoues: historique.length,
+        totalPoints: historique.fold<int>(
+          0,
+          (total, entry) => total + entry.score,
+        ),
         meilleureSerie: 0,
         tauxReussite: _calculerTauxReussite(historique),
         historique: historique,
