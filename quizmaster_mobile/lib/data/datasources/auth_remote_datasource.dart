@@ -4,19 +4,10 @@ import '../../domain/entities/auth_user.dart';
 
 class AuthRemoteDataSource {
   AuthRemoteDataSource({FirebaseAuth? firebaseAuth})
-    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-      _googleSignIn = GoogleSignIn.instance;
+      : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
   final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
-  bool _googleSignInInitialise = false;
-
-  Future<void> _assurerGoogleSignInInitialise() async {
-    if (!_googleSignInInitialise) {
-      await _googleSignIn.initialize();
-      _googleSignInInitialise = true;
-    }
-  }
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
   Future<AuthUser> signInWithEmailAndPassword({
     required String email,
@@ -60,8 +51,7 @@ class AuthRemoteDataSource {
   }
 
   Future<AuthUser> signInWithGoogle() async {
-    await _assurerGoogleSignInInitialise();
-
+    // L'initialisation est maintenant faite dans le main.dart
     final googleUser = await _googleSignIn.authenticate();
     final googleAuth = googleUser.authentication;
 

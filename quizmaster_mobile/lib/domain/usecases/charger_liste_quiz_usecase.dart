@@ -9,4 +9,8 @@ class ChargerListeQuizUseCase {
   Future<List<Quiz>> call() {
     return _quizRepository.getQuizzes();
   }
+
+  Stream<List<Quiz>> watch() {
+    return _quizRepository.watchQuizzes();
+  }
 }

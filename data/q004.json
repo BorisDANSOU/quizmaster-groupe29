@@ -1,0 +1,19 @@
+{
+  "quizId": "q004",
+  "titre": "dfvg",
+  "categorie": "vdgb",
+  "difficulte": "facile",
+  "questions": [
+    {
+      "id": "q004-01",
+      "enonce": "gbfgh",
+      "type": "qcm",
+      "options": [
+        "bthgdb ",
+        "rdgrv"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 2
+    }
+  ]
+}

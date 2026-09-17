@@ -13,9 +13,17 @@ class FirestoreService {
   static const _scopes = ['https://www.googleapis.com/auth/datastore'];
 
   Future<FirestoreApi> _client() async {
-    final file = File('service_account.json');
+    File file = File('service_account.json');
     if (!file.existsSync()) {
-      throw Exception('Le fichier "service_account.json" est manquant à la racine du CLI.');
+      // Tente de le trouver dans le sous-dossier quizmaster_cli si on est à la racine du projet
+      file = File('quizmaster_cli/service_account.json');
+    }
+
+    if (!file.existsSync()) {
+      throw Exception(
+        'Le fichier "service_account.json" est manquant.\n'
+        'Assurez-vous qu\'il est présent à la racine de l\'exécution ou dans quizmaster_cli/.',
+      );
     }
     final credsJson = file.readAsStringSync();
     final credentials = ServiceAccountCredentials.fromJson(credsJson);

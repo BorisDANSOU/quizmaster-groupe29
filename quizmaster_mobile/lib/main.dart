@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:quizmaster_mobile/domain/usecases/charger_profil_usecase.dart';
 
 import 'firebase_options.dart';
@@ -29,7 +31,20 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  final authRepository = AuthRepositoryImpl(dataSource: AuthRemoteDataSource());
+  // Initialisation sécurisée de Google Sign In uniquement sur les plateformes mobiles supportées
+  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS)) {
+    try {
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '138609407717-fgrgsfg7vn21npucesomeri8nv8c95gi.apps.googleusercontent.com',
+      );
+    } catch (e) {
+      debugPrint('Google Sign In non configuré ou non supporté : $e');
+    }
+  }
+
+  final authRepository = AuthRepositoryImpl(
+    dataSource: AuthRemoteDataSource(),
+  );
 
   final quizRepository = QuizRepositoryImpl(
     dataSource: const QuizLocalDataSource(assetPath: 'assets/quizzes.json'),

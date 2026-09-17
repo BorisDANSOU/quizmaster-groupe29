@@ -1,0 +1,19 @@
+{
+  "quizId": "q001",
+  "titre": "S",
+  "categorie": "SSS",
+  "difficulte": "facile",
+  "questions": [
+    {
+      "id": "q001-01",
+      "enonce": "SS",
+      "type": "qcm",
+      "options": [
+        "c",
+        "c"
+      ],
+      "bonneReponseIndex": 0,
+      "points": 10
+    }
+  ]
+}

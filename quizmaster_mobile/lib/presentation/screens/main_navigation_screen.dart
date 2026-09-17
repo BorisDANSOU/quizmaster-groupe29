@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../domain/entities/profil_utilisateur.dart';
 import '../../domain/entities/quiz.dart';
@@ -50,6 +52,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ProfilUtilisateur? _profil;
   List<ProfilUtilisateur> _classement = [];
   bool _chargement = true;
+  StreamSubscription<List<Quiz>>? _quizzesSubscription;
 
   static const _couleursCategories = {
     'Education': AppColors.categorieEducation,
@@ -67,7 +70,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
+    _quizzesSubscription = widget.chargerListeQuiz.watch().listen((quizzes) {
+      if (!mounted) return;
+      setState(() {
+        _quizzes = quizzes;
+      });
+    });
     _chargerTout();
+  }
+
+  @override
+  void dispose() {
+    _quizzesSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _chargerTout() async {

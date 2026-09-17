@@ -426,14 +426,20 @@ Future<void> publierTousLesQuizLocaux(JsonService jsonService) async {
 /// Vérifie si le fichier service_account.json est présent et si Firestore est accessible.
 Future<void> testerConnexionFirebase() async {
   print('\n--- Diagnostic de la connexion Firebase ---');
-  final file = File('service_account.json');
-  
+  File file = File('service_account.json');
+
+  if (!file.existsSync()) {
+    file = File('quizmaster_cli/service_account.json');
+  }
+
   if (!file.existsSync()) {
     print('[ERREUR] Le fichier "service_account.json" est ABSENT.');
-    print('Action requise : Téléchargez la clé JSON depuis la console Firebase et placez-la à la racine de quizmaster_cli.');
+    print(
+      'Action requise : Téléchargez la clé JSON depuis la console Firebase et placez-la à la racine de quizmaster_cli ou à la racine du projet.',
+    );
     return;
   }
-  print('[OK] Fichier "service_account.json" détecté.');
+  print('[OK] Fichier "service_account.json" détecté (${file.path}).');
 
   try {
     print('Tentative d\'appel à l\'API Firestore...');
