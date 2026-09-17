@@ -1,30 +1,49 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:quizmaster_mobile/data/datasources/auth_remote_datasource.dart';
+import 'package:quizmaster_mobile/data/datasources/leaderboard_remote_datasource.dart';
+import 'package:quizmaster_mobile/data/datasources/profil_remote_datasource.dart';
+import 'package:quizmaster_mobile/data/datasources/quiz_local_datasource.dart';
+import 'package:quizmaster_mobile/data/repositories/auth_repository_impl.dart';
+import 'package:quizmaster_mobile/data/repositories/leaderboard_repository_impl.dart';
+import 'package:quizmaster_mobile/data/repositories/profil_repository_impl.dart';
+import 'package:quizmaster_mobile/data/repositories/quiz_repository_impl.dart';
 import 'package:quizmaster_mobile/main.dart';
+import 'package:quizmaster_mobile/presentation/screens/splash_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('QuizMaster app renders the startup screen', (tester) async {
+    // Simule Firebase Auth ET Firestore, sans jamais toucher au vrai Firebase.
+    final fakeFirestore = FakeFirebaseFirestore();
+    final authRemoteDataSource = AuthRemoteDataSource(
+      firebaseAuth: MockFirebaseAuth(),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      QuizMasterApp(
+        authRepository: AuthRepositoryImpl(dataSource: authRemoteDataSource),
+        quizRepository: QuizRepositoryImpl(
+          dataSource: const QuizLocalDataSource(
+            assetPath: 'assets/quizzes.json',
+          ),
+        ),
+        profilRepository: ProfilRepositoryImpl(
+          dataSource: ProfilRemoteDataSource(firestore: fakeFirestore),
+        ),
+        leaderboardRepository: LeaderboardRepositoryImpl(
+          dataSource: LeaderboardRemoteDataSource(firestore: fakeFirestore),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
     await tester.pump();
+    expect(find.byType(SplashScreen), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+
+    expect(find.text('Se connecter'), findsOneWidget);
+    expect(find.text('Bienvenue !'), findsOneWidget);
   });
 }

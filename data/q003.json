@@ -1,0 +1,19 @@
+{
+  "quizId": "q003",
+  "titre": "sssss",
+  "categorie": "ssss",
+  "difficulte": "facile",
+  "questions": [
+    {
+      "id": "q003-01",
+      "enonce": "gghf",
+      "type": "qcm",
+      "options": [
+        "gfgt",
+        "rt"
+      ],
+      "bonneReponseIndex": 0,
+      "points": 20
+    }
+  ]
+}

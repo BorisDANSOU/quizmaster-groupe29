@@ -1,0 +1,21 @@
+{
+  "quizId": "q002",
+  "titre": "Bof",
+  "categorie": "Education",
+  "difficulte": "facile",
+  "questions": [
+    {
+      "id": "q002-01",
+      "enonce": "BÃ©nin est un ...",
+      "type": "qcm",
+      "options": [
+        "Continent ",
+        "Pays",
+        "Royaume",
+        "Jungle"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 10
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "quizId": "q002",
+  "titre": "Essaie",
+  "categorie": "Aucune",
+  "difficulte": "facile",
+  "questions": [
+    {
+      "id": "q002-01",
+      "enonce": "Captitale du BÃ©nin",
+      "type": "qcm",
+      "options": [
+        "Cotonou",
+        "LomÃ©"
+      ],
+      "bonneReponseIndex": 0,
+      "points": 10
+    }
+  ]
+}

@@ -1,39 +1,59 @@
-# QuizMaster CLI
+﻿# QuizMaster CLI
 
-Outil en ligne de commande pour créer, lister, modifier et supprimer des quiz au format JSON, utilisés ensuite par l'application mobile QuizMaster.
+Le CLI QuizMaster est un outil de création et de gestion de quiz destiné à produire des fichiers JSON réutilisables par l'application mobile.
 
-## Lancer le CLI
+## Objectif
 
-Depuis le dossier `quizmaster_cli/` :
+Le module `quizmaster_cli` permet de :
+
+- créer un nouveau quiz
+- lister les quiz déjà disponibles
+- modifier les métadonnées et questions d'un quiz existant
+- supprimer un quiz
+- exporter le contenu dans le dossier `data/`
+
+## Structure du projet
+
+```text
+quizmaster_cli/
+├── bin/
+├── data/
+├── lib/
+├── test/
+├── pubspec.yaml
+├── README.md
+└── analysis_options.yaml
+```
+
+## Démarrage
+
+Depuis le dossier du module :
 
 ```powershell
+dart pub get
 dart run
 ```
 
-## Fonctionnalités du menu
+## Rôle du CLI dans le projet
 
-1. **Créer un nouveau quiz** — saisie guidée des métadonnées (ID, titre, catégorie, difficulté) puis d'une ou plusieurs questions QCM. L'ID doit être unique et non vide ; la difficulté doit être `facile`, `moyen` ou `difficile`.
-2. **Lister les quiz existants** — affiche les fichiers présents dans `data/`
-3. **Modifier un quiz existant** — change les métadonnées et/ou ajoute des questions à un quiz déjà créé (laisser vide pour conserver la valeur actuelle)
-4. **Supprimer un quiz** — supprime un fichier de quiz après confirmation (`o`/`n`)
-5. **Quitter**
+Le CLI agit comme source de contenu du projet : il prépare les quiz au format exploitable par l'application mobile. Les fichiers générés sont ensuite consommés par l'application pour proposer des questions et mesurer les résultats.
 
-## Format des fichiers générés
+## Format des quiz
 
-Les quiz sont enregistrés dans `data/<quizId>.json`. Exemple :
+Les quiz sont stockés au format JSON dans le dossier `data/`.
 
 ```json
 {
   "quizId": "q001",
-  "titre": "Bien-etre au quotidien",
+  "titre": "Bien-être au quotidien",
   "categorie": "Sante_Bien_Etre",
   "difficulte": "facile",
   "questions": [
     {
       "id": "q001-01",
-      "enonce": "...",
+      "enonce": "Quelle activité aide à réduire le stress ?",
       "type": "qcm",
-      "options": ["...", "..."],
+      "options": ["Méditer", "Ignorer le problème", "Travailler sans pause"],
       "bonneReponseIndex": 0,
       "points": 10
     }
@@ -41,15 +61,12 @@ Les quiz sont enregistrés dans `data/<quizId>.json`. Exemple :
 }
 ```
 
-Ce format est le contrat entre le CLI et l'application mobile : toute modification de structure doit être communiquée à l'équipe mobile.
+## Validation
 
-## Lancer les tests
+Pour lancer les tests du module :
 
 ```powershell
 dart test
 ```
 
-Comprend :
-- Tests unitaires des modèles `Quiz`/`Question` (sérialisation JSON)
-- Tests unitaires du `JsonService` (lecture/écriture de fichiers)
-- Tests d'intégration du pipeline complet (création → écriture → lecture, et modification)
+La couverture des tests porte sur la validation des modèles, la sérialisation JSON et les flux de création / lecture / modification de quiz.

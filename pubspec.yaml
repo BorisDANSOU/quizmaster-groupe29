@@ -1,0 +1,13 @@
+name: quizmaster_workspace
+description: Workspace-level Dart tests for QuizMaster.
+publish_to: 'none'
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  quizmaster_cli:
+    path: ./quizmaster_cli
+
+dev_dependencies:
+  test: ^1.32.0

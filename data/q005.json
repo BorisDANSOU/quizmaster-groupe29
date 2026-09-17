@@ -1,0 +1,19 @@
+{
+  "quizId": "q005",
+  "titre": "ffg",
+  "categorie": "nhgf",
+  "difficulte": "moyen",
+  "questions": [
+    {
+      "id": "q005-01",
+      "enonce": "gfnhn",
+      "type": "qcm",
+      "options": [
+        "rjg",
+        "ndhg"
+      ],
+      "bonneReponseIndex": 0,
+      "points": 20
+    }
+  ]
+}

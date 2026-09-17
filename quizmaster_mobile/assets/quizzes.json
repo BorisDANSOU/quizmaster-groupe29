@@ -1,0 +1,84 @@
+﻿[{
+  "quizId": "q001",
+  "titre": "Bien-etre au quotidien",
+  "categorie": "Sante_Bien_Etre",
+  "difficulte": "moyen",
+  "questions": [
+    {
+      "id": "q001-01",
+      "enonce": "Quelle est la duree recommandee d'une sieste pour un adulte ?",
+      "type": "qcm",
+      "options": [
+        "10 a 20 minutes",
+        "30 a 60 minutes",
+        "1 a 2 heures",
+        "3 a 4 heures"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 10
+    },
+    {
+      "id": "q001-02",
+      "enonce": "Combien de litres d'eau un adulte devrait-il boire par jour en moyenne ?",
+      "type": "qcm",
+      "options": [
+        "0.5 litre",
+        "1.5 a 2 litres",
+        "4 litres",
+        "6 litres"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 10
+    },
+    {
+      "id": "q001-03",
+      "enonce": "Quel est le nombre d'heures de sommeil recommande par nuit pour un adulte ?",
+      "type": "qcm",
+      "options": [
+        "4 a 5 heures",
+        "7 a 9 heures",
+        "10 a 12 heures",
+        "2 a 3 heures"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 10
+    },
+    {
+      "id": "q001-04",
+      "enonce": "La marche rapide est consideree comme une activite physique moderee.",
+      "type": "qcm",
+      "options": [
+        "Vrai",
+        "Faux"
+      ],
+      "bonneReponseIndex": 0,
+      "points": 5
+    },
+    {
+      "id": "q001-05",
+      "enonce": "Quel groupe d'aliments est la meilleure source de fibres ?",
+      "type": "qcm",
+      "options": [
+        "Viandes rouges",
+        "Fruits et legumes",
+        "Sucreries",
+        "Boissons gazeuses"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 10
+    },
+    {
+      "id": "q001-06",
+      "enonce": "Quel est le meilleur moment pour faire du sport selon les recommandations generales ?",
+      "type": "qcm",
+      "options": [
+        "Juste apres un gros repas",
+        "A n'importe quel moment, tant que c'est regulier",
+        "Uniquement le matin a jeun",
+        "Jamais le soir"
+      ],
+      "bonneReponseIndex": 1,
+      "points": 5
+    }
+  ]
+}]
