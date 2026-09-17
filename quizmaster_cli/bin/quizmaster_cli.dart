@@ -1,8 +1,23 @@
+import 'dart:convert';
 import 'dart:io';
-import '../lib/models/quiz.dart';
-import '../lib/models/question.dart';
-import '../lib/services/json_service.dart';
-import '../lib/services/firestore_service.dart';
+import 'package:quizmaster_cli/models/quiz.dart';
+import 'package:quizmaster_cli/models/question.dart';
+import 'package:quizmaster_cli/services/json_service.dart';
+import 'package:quizmaster_cli/services/firestore_service.dart';
+
+String lireLigneUtf8() {
+  final bytes = <int>[];
+
+  while (true) {
+    final byte = stdin.readByteSync();
+    if (byte == -1 || byte == 10 || byte == 13) {
+      break;
+    }
+    bytes.add(byte);
+  }
+
+  return utf8.decode(bytes, allowMalformed: false);
+}
 
 /// Point d'entree du CLI QuizMaster.
 Future<void> main() async {
@@ -13,7 +28,7 @@ Future<void> main() async {
 
   while (continuer) {
     afficherMenu();
-    final choix = stdin.readLineSync();
+    final choix = lireLigneUtf8();
 
     switch (choix) {
       case '1':
@@ -75,7 +90,7 @@ Future<void> creerQuiz(JsonService jsonService) async {
   final regExpId = RegExp(r'^[a-zA-Z0-9_\-]+$');
   while (quizId.isEmpty || File('data/$quizId.json').existsSync() || !regExpId.hasMatch(quizId)) {
     stdout.write('ID du quiz (ex: q001) : ');
-    quizId = stdin.readLineSync() ?? '';
+    quizId = lireLigneUtf8();
 
     if (quizId.isEmpty) {
       print('L\'ID ne peut pas etre vide.');
@@ -89,17 +104,17 @@ Future<void> creerQuiz(JsonService jsonService) async {
   }
 
   stdout.write('Titre du quiz : ');
-  final titre = stdin.readLineSync() ?? '';
+  final titre = lireLigneUtf8();
 
   stdout.write('Categorie (ex: Education) : ');
-  final categorie = stdin.readLineSync() ?? '';
+  final categorie = lireLigneUtf8();
 
   // Difficulte : uniquement une des 3 valeurs autorisees
   const difficultesValides = ['facile', 'moyen', 'difficile'];
   String difficulte = '';
   while (!difficultesValides.contains(difficulte)) {
     stdout.write('Difficulte (facile/moyen/difficile) : ');
-    difficulte = (stdin.readLineSync() ?? '').toLowerCase();
+    difficulte = lireLigneUtf8().toLowerCase();
 
     if (!difficultesValides.contains(difficulte)) {
       print('Valeur invalide, choisis parmi : facile, moyen, difficile.');
@@ -113,7 +128,7 @@ Future<void> creerQuiz(JsonService jsonService) async {
     questions.add(creerQuestion(questions.length + 1, quizId));
 
     stdout.write('\nAjouter une autre question ? (o/n) : ');
-    final reponse = stdin.readLineSync()?.toLowerCase();
+    final reponse = lireLigneUtf8().toLowerCase();
     ajouterAutreQuestion = reponse == 'o';
   }
 
@@ -131,7 +146,7 @@ Future<void> creerQuiz(JsonService jsonService) async {
   print('\nQuiz sauvegarde avec succes dans : $cheminFichier');
 
   stdout.write('Publier ce quiz sur Firebase immédiatement ? (o/n) : ');
-  final repPublier = stdin.readLineSync()?.toLowerCase();
+  final repPublier = lireLigneUtf8().toLowerCase();
   if (repPublier == 'o') {
     await FirestoreService().publierQuiz(quiz);
   }
@@ -143,7 +158,7 @@ Question creerQuestion(int numero, String quizId) {
   print('\n-- Question $numero --');
 
   stdout.write('Enonce de la question : ');
-  final enonce = stdin.readLineSync() ?? '';
+  final enonce = lireLigneUtf8();
 
   final options = <String>[];
   const maxOptions = 5;
@@ -153,7 +168,7 @@ Question creerQuestion(int numero, String quizId) {
 
   while (options.length < maxOptions) {
     stdout.write('Option ${options.length + 1} : ');
-    final option = stdin.readLineSync() ?? '';
+    final option = lireLigneUtf8();
 
     if (option.isEmpty) {
       print('Une option ne peut pas etre vide, reessaie.');
@@ -170,7 +185,7 @@ Question creerQuestion(int numero, String quizId) {
 
     // Demande systematique apres CHAQUE option ajoutee
     stdout.write('Ajouter une autre option ? (o/n) : ');
-    final continuer = stdin.readLineSync()?.toLowerCase();
+    final continuer = lireLigneUtf8().toLowerCase();
 
     if (continuer != 'o') {
       // L'utilisateur veut s'arreter, mais le minimum n'est pas encore atteint
@@ -187,7 +202,7 @@ Question creerQuestion(int numero, String quizId) {
   int numeroBonneReponse = -1;
   while (numeroBonneReponse < 1 || numeroBonneReponse > options.length) {
     stdout.write('Numero de la bonne reponse (1 a ${options.length}) : ');
-    numeroBonneReponse = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+    numeroBonneReponse = int.tryParse(lireLigneUtf8()) ?? -1;
 
     if (numeroBonneReponse < 1 || numeroBonneReponse > options.length) {
       print('Numero invalide, choisis entre 1 et ${options.length}.');
@@ -199,7 +214,7 @@ Question creerQuestion(int numero, String quizId) {
   stdout.write('Points pour cette question : ');
   int points = -1;
   while (points < 0) {
-    final inputPoints = stdin.readLineSync() ?? '';
+    final inputPoints = lireLigneUtf8();
     points = int.tryParse(inputPoints) ?? 10;
     if (points < 0) {
       print('Les points ne peuvent pas être négatifs. Réessaie : ');
@@ -220,7 +235,7 @@ Question creerQuestion(int numero, String quizId) {
 /// et/ou lui ajouter de nouvelles questions.
 Future<void> modifierQuiz(JsonService jsonService) async {
   stdout.write('\nID du quiz a modifier (ex: q001) : ');
-  final quizId = stdin.readLineSync() ?? '';
+  final quizId = lireLigneUtf8();
   final cheminFichier = 'data/$quizId.json';
 
   if (!File(cheminFichier).existsSync()) {
@@ -234,13 +249,13 @@ Future<void> modifierQuiz(JsonService jsonService) async {
   print('(laisse vide pour ne pas changer une valeur)');
 
   stdout.write('Nouveau titre [${quizActuel.titre}] : ');
-  final nouveauTitre = stdin.readLineSync() ?? '';
+  final nouveauTitre = lireLigneUtf8();
 
   stdout.write('Nouvelle categorie [${quizActuel.categorie}] : ');
-  final nouvelleCategorie = stdin.readLineSync() ?? '';
+  final nouvelleCategorie = lireLigneUtf8();
 
   stdout.write('Nouvelle difficulte [${quizActuel.difficulte}] : ');
-  final nouvelleDifficulte = stdin.readLineSync() ?? '';
+  final nouvelleDifficulte = lireLigneUtf8();
 
   // On garde l'ancienne valeur si l'utilisateur n'a rien tape
   final titre = nouveauTitre.isNotEmpty ? nouveauTitre : quizActuel.titre;
@@ -254,13 +269,13 @@ Future<void> modifierQuiz(JsonService jsonService) async {
   final questions = List<Question>.from(quizActuel.questions);
 
   stdout.write('\nAjouter une nouvelle question ? (o/n) : ');
-  bool ajouterQuestion = stdin.readLineSync()?.toLowerCase() == 'o';
+  bool ajouterQuestion = lireLigneUtf8().toLowerCase() == 'o';
 
   while (ajouterQuestion) {
     questions.add(creerQuestion(questions.length + 1, quizId));
 
     stdout.write('\nAjouter une autre question ? (o/n) : ');
-    ajouterQuestion = stdin.readLineSync()?.toLowerCase() == 'o';
+    ajouterQuestion = lireLigneUtf8().toLowerCase() == 'o';
   }
 
   final quizModifie = Quiz(
@@ -275,7 +290,7 @@ Future<void> modifierQuiz(JsonService jsonService) async {
   print('\nQuiz modifie et sauvegarde avec succes.');
 
   stdout.write('Publier les modifications sur Firebase immédiatement ? (o/n) : ');
-  final repPublier = stdin.readLineSync()?.toLowerCase();
+  final repPublier = lireLigneUtf8().toLowerCase();
   if (repPublier == 'o') {
     await FirestoreService().publierQuiz(quizModifie);
     print('\nQuiz publié avec succes sur Firebase');
@@ -316,7 +331,7 @@ void listerQuiz() {
 /// Supprime le fichier JSON d'un quiz, apres confirmation de l'utilisateur.
 Future<void> supprimerQuiz() async {
   stdout.write('\nID du quiz a supprimer (ex: q001) : ');
-  final quizId = stdin.readLineSync() ?? '';
+  final quizId = lireLigneUtf8();
   final cheminFichier = 'data/$quizId.json';
   final fichier = File(cheminFichier);
 
@@ -326,14 +341,14 @@ Future<void> supprimerQuiz() async {
   }
 
   stdout.write('Es-tu sur de vouloir supprimer "$quizId" ? (o/n) : ');
-  final confirmation = stdin.readLineSync()?.toLowerCase();
+  final confirmation = lireLigneUtf8().toLowerCase();
 
   if (confirmation == 'o') {
     fichier.deleteSync();
     print('Quiz local supprime avec succes.');
 
     stdout.write('Le supprimer aussi de Firebase ? (o/n) : ');
-    final repFirebase = stdin.readLineSync()?.toLowerCase();
+    final repFirebase = lireLigneUtf8().toLowerCase();
     if (repFirebase == 'o') {
       await FirestoreService().supprimerQuiz(quizId);
     }
@@ -344,7 +359,7 @@ Future<void> supprimerQuiz() async {
 
 Future<void> publierQuiz() async {
   stdout.write('\nID du quiz a publier : ');
-  final quizId = stdin.readLineSync() ?? '';
+  final quizId = lireLigneUtf8();
   final chemin = 'data/$quizId.json';
 
   if (!File(chemin).existsSync()) {
@@ -372,7 +387,7 @@ Future<void> telechargerQuizDepuisFirebase(JsonService jsonService) async {
     }
 
     stdout.write('\nEntrez le numéro du quiz à télécharger (ou "t" pour TOUT télécharger) : ');
-    final choix = stdin.readLineSync()?.toLowerCase();
+    final choix = lireLigneUtf8().toLowerCase();
 
     if (choix == 't') {
       for (final quiz in quizEnLigne) {
@@ -381,7 +396,7 @@ Future<void> telechargerQuizDepuisFirebase(JsonService jsonService) async {
       }
       print('Tous les quiz ont été synchronisés avec succès localement !');
     } else {
-      final index = (int.tryParse(choix ?? '') ?? 0) - 1;
+      final index = (int.tryParse(choix) ?? 0) - 1;
       if (index >= 0 && index < quizEnLigne.length) {
         final quiz = quizEnLigne[index];
         final chemin = 'data/${quiz.quizId}.json';
